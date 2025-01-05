@@ -1,0 +1,7 @@
+{
+    "require": {
+        "firebase/php-jwt": "^6.10",
+        "dotenv-org/phpdotenv-vault": "^0.2.4",
+        "google/apiclient": "^2.18"
+    }
+}
