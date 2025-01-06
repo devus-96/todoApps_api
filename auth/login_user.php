@@ -1,5 +1,6 @@
 <?php 
 
+/*$_SERVER['DOCUMENT_ROOT'] Parce que required fonctionne avec les chemin réèl des fichier et pa avec leur position dans le serveur */
 
 require $_SERVER['DOCUMENT_ROOT'] . '/action/db.php';
 require $_SERVER['DOCUMENT_ROOT'] . '/action/jwt.php';
