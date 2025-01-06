@@ -10,7 +10,7 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 
-if (isset($_GET['code'])) {
+if (isset($_GET['code'])) { // $_GET recupère les paramètres envoyés via URL
     
     try {
         require_once "../action/auth_google.php";
