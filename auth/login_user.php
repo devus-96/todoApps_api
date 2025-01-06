@@ -1,7 +1,8 @@
 <?php 
 
-require '../action/db.php';
-require '../action/jwt.php';
+
+require $_SERVER['DOCUMENT_ROOT'] . '/action/db.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/action/jwt.php';
 
 $data = json_decode(file_get_contents('php://input'), true);
 

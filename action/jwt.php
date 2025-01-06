@@ -4,8 +4,6 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 function generateJWT ($userdata) {
-    //la cles secrete qui va permettre d'encoder et de decoder le cles le moment venu
-    $secretKey = getenv("SESSION_SECRET");
 
     $issuedAt = new DateTimeImmutable();
     //la date d'expiration
@@ -23,7 +21,7 @@ function generateJWT ($userdata) {
 
     $token = JWT::encode(
         $tab,
-        $secretKey,
+        '',
         "HS512"
     );
 

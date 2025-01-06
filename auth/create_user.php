@@ -3,8 +3,8 @@
 //cette ligne est pour l'empecher
 declare(strict_types = 1);
 
-require '../action/db.php';
-require '../action/jwt.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/action/db.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/action/jwt.php';
 
 /* facon de recuperer les donnees depuis le frontent <json_decode> Récupère une chaîne encodée 
 JSON et la convertit en une valeur de PHP. et retourne Retourne la valeur encodée dans le paramètre json dans le type PHP approprié
