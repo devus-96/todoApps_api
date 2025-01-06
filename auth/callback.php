@@ -3,6 +3,8 @@
 require '../action/db.php';
 require '../action/jwt.php';
 
+// résoudre les problème de cors ...
+
 header("Access-Control-Allow-Origin: http://localhost:3000");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
