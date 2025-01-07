@@ -22,7 +22,16 @@ class BDManage {
     }
 
     function insert () {
-
+                //la fonction new       PDO()->prepare() prend en parametre une requette sql valide en string qui sera...
+        $stmg = $pdo->prepare("INSERT INTO users (firstname, lastname, email, password, role) VALUES (:firstName, :lastName, :email, :password, :role)");
+        //...executer par la fonction execute() de la valeur renvoye par prepare()
+        $stmg->execute([
+            ":firstName" => $data["firstName"],
+            ":lastName" => $data["lastName"],
+            ":email" => $data["email"],
+            ":password" => $encrpt,
+            "role" => 'administrator',
+        ]);
     }
 
     function check () {
