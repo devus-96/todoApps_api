@@ -22,15 +22,18 @@ class BDManage {
        }
     }
 
-    private function alter ($data) {
+    private function alterinsert ($data, $table) {
       $i = 0;
-      $cammand = '';
+      $prevcammand = '';
+      $prevcammand2 = '';
       $commandExecute = '';
       foreach($data as key => value) {
          $pre = ($i > 0)?', ':''; 
-         $command .= $pre.$key
-         
+         $prevcammand .= $pre.$key
+         $prevcammand2 .= $prev.':'.$key
+         i++
       }
+      $command = "INSERT INTO".$table .'('. $prevcammand. ')'.  'VALUES'. '('.$prevcammand2. ')' ;
       return $command
     }
 
