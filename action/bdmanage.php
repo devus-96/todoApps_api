@@ -6,7 +6,7 @@ class BDManage {
    private $pdo;
 
    
-   function __construct() {
+   function __construct($data = array()) {
         try {
           $this -> pdo = new PDO("pgsql:host="."$this -> host". ";dbname=". "$this ->dbname". ", $user, $password");
 
@@ -19,6 +19,14 @@ class BDManage {
        } catch (PDOException $e) {
          die("Error: " . $e->getMessage());
        }
+    }
+
+    function insert () {
+
+    }
+
+    function check () {
+
     }
 
 
