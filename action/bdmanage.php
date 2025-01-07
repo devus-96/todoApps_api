@@ -23,9 +23,15 @@ class BDManage {
     }
 
     private function alter ($data) {
+      $i = 0;
+      $cammand = '';
+      $commandExecute = '';
       foreach($data as key => value) {
-
+         $pre = ($i > 0)?', ':''; 
+         $command .= $pre.$key
+         
       }
+      return $command
     }
 
 
