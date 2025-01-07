@@ -1,15 +1,17 @@
+<?php
 class BDManage {
    private $host = 'localhost';
    private $user = "postgres";
    private $dbname = "appmanagebd";
    private $password = "daus985220";
    private $pdo;
+   public $data;
 
    
    function __construct($data = array()) {
-        $this -> data = $data;
+        $this->data = $data;
         try {
-          $this -> pdo = new PDO("pgsql:host="."$this -> host". ";dbname=". "$this ->dbname". ", $user, $password");
+          $this -> pdo = new PDO("pgsql:host=$this->host;dbname=$this->dbname",$this->user, $this -> password);
 
           $this -> pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); 
  
@@ -26,21 +28,18 @@ class BDManage {
       $i = 0;
       $prevcammand = '';
       $prevcammand2 = '';
-      $commandExecute = '';
-      foreach($data as key => value) {
+      foreach($data as $key => $value) {
          $pre = ($i > 0)?', ':''; 
-         $prevcammand .= $pre.$key
-         $prevcammand2 .= $prev.':'.$key
-         i++
+         $prevcammand .= $pre.$key;
+         $prevcammand2 .= $pre.':'.$key;
+         $i++;
       }
       $command = "INSERT INTO".$table .'('. $prevcammand. ')'.  'VALUES'. '('.$prevcammand2. ')' ;
-      return $command
+      return $command;
     }
 
     private function pdotable ($data) {
-        foreach(){
-          
-        }
+        
     }
 
 
@@ -54,3 +53,4 @@ class BDManage {
 
 
 }
+?>
