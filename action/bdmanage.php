@@ -37,6 +37,12 @@ class BDManage {
       return $command
     }
 
+    private function pdotable ($data) {
+        foreach(){
+          
+        }
+    }
+
 
     function insert ($table) {
        
