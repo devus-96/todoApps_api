@@ -8,7 +8,7 @@ class BDManage {
    
    function __construct() {
         try {
-          $this -> pdo = new PDO("pgsql:host=". "$this -> host". ";dbname=". "$this ->dbname". ", $user, $password");
+          $this -> pdo = new PDO("pgsql:host="."$this -> host". ";dbname=". "$this ->dbname". ", $user, $password");
 
           $this -> pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); 
  
