@@ -4,4 +4,8 @@ class BDManage {
    private $dbname = "appmanagebd";
    private $password = "daus985220";
 
+   
+   function __construct() {
+        
+    }
 }
