@@ -1,7 +1,8 @@
 <?php 
 
 require '../action/db.php';
-require '../action/jwt.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/action/jwt.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/DB/user.php';
 
 // résoudre les problème de cors ...
 
@@ -16,16 +17,13 @@ if (isset($_GET['code'])) { // $_GET recupère les paramètres envoyés via URL
         require_once "../action/auth_google.php";
 
         if (!empty($gUser)) {
-            $smth = $pdo -> prepare("SELECT * FROM users WHERE email = :email");
-            $smth->execute([':email' => $gUser['email']]);
-            $checkResult = $smth->fetch(PDO::FETCH_ASSOC);
+            $user = new BD($gUser);
+            $checkEmail = $user->select('users', '*', 'email');
 
-            if ($checkResult) {
-                $pass = $pdo -> prepare("SELECT password FROM users WHERE email = :email");
-                $pass->execute([':email' => $gUser['email']]);
-                $check = $pass->fetch(PDO::FETCH_ASSOC);
+            if ($checkEmail) {
+                $checkPassword = $user->select('users', 'password', 'email');
         
-                if ($check['password'] !== "") {
+                if ($checkPassword['password'] !== "") {
                     header("HTTP/1.1 400 Bad request");
                     echo "Please register with your email, as you authenticated yourself the first time this way !!!";
                 } else {

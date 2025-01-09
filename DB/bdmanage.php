@@ -4,10 +4,12 @@ class BD {
    private $user = "postgres";
    private $dbname = "appmanagebd";
    private $password = "daus985220";
+   private $data;
    public $pdo;
 
    
-   function __construct() {
+   function __construct($data) {
+        $this->data = $data;
         try {
           $this->pdo = new PDO("pgsql:host=$this->host;dbname=$this->dbname",$this->user, $this->password);
 
@@ -35,7 +37,7 @@ class BD {
       $command = 'INSERT INTO'. ' '. $table. ' ' .'('. $prevcammand. ')'.  'VALUES'. '('.$prevcammand2. ')' ;
       return $command;
     }
-
+    
     public function pdotable ($data) {
         $tab = array();
         foreach ($data as $key => $value) {
@@ -43,6 +45,21 @@ class BD {
         }
         return $tab;
     }
+
+    function insert ($table) {
+      $value = $this->alterinsert($this->data, $table);
+      $tab = $this->pdotable($this->data);
+      $user = $this->pdo->prepare($value);
+      $user->execute($tab);
+   }
+
+   function select ($table, $selected, $where) {
+    $get = $this->pdo->prepare("SELECT $selected FROM $table WHERE $where = :$where");
+    $get->execute([":$where" => $this->data[$where]]);
+    $res = $get->fetch(PDO::FETCH_ASSOC);
+
+    return $res;
+  }
 
 }
 ?>

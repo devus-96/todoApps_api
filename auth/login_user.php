@@ -2,23 +2,19 @@
 
 /*$_SERVER['DOCUMENT_ROOT'] Parce que required fonctionne avec les chemin réèl des fichier et pa avec leur position dans le serveur */
 
-require $_SERVER['DOCUMENT_ROOT'] . '/action/db.php';
 require $_SERVER['DOCUMENT_ROOT'] . '/action/jwt.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/DB/bdmanage.php';
 
 $data = json_decode(file_get_contents('php://input'), true);
 
 if ($data['email'] !== '' && $data['password'] !== "") {
     try {
-        $smth = $pdo->prepare("SELECT * FROM users WHERE email = :email");
-        $status = $smth->execute([":email" => $data['email']]);
-        $response = $smth->fetch(PDO::FETCH_ASSOC);
+        $user = new BD($data);
+        $response = $user->select('users', '*', 'email');
 
         if ($response) {
-            $getpassword = $pdo->prepare('SELECT password FROM users WHERE email = :email');
-            $getpassword->execute([":email" => $data['email']]);
-            $resPassword = $getpassword->fetch(PDO::FETCH_ASSOC);
-
-            $passworVerify = password_verify($data['password'], $resPassword['password']);
+            $getpassword = $user->select('users', 'password', 'email');
+            $passworVerify = password_verify($data['password'], $getpassword['password']);
 
             $token = generateJWT($data["email"]);
 
