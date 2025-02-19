@@ -1,8 +1,7 @@
 <?php 
 
-require '../action/db.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/action/jwt.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/DB/user.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/utils/jwt.php';
 
 // résoudre les problème de cors ...
 

@@ -1,6 +1,6 @@
 <?php
-require "action/cors.php";
-
+require $_SERVER['DOCUMENT_ROOT'] . '/utils/cors.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/controllers/UserController.php';
 require __DIR__ . '/vendor/autoload.php';
 
 cors();
@@ -10,18 +10,33 @@ error_reporting(E_ALL);
 // faire en sorte que l'url n'envoie que le pathname et pas d'autre argument qui peuvent etre 
 //possiblement present dans l'url comment le nom du serveur et le port
 
-$dotenv = DotenvVault\DotenvVault::createUnsafeImmutable(__DIR__);
-$dotenv->safeLoad();
+// Définir les routes
+$routes = require_once 'routes/user.php';
+//$routes = array_merge($routes);
 
-function pathFile ($url, $method, $fileName) {
-    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    if ($uri === $url && $_SERVER['REQUEST_METHOD'] === $method) {
-        require $fileName;
+// Récupérer la méthode et l'URI de la requête
+$method = $_SERVER['REQUEST_METHOD'];
+$uri = $_SERVER['REQUEST_URI'];
+
+// Trouver la route correspondante
+foreach ($routes as $route) {
+    if ($route['method'] === $method && preg_match($route['pattern'], $uri, $matches)) {
+        // Extraire les paramètres de l'URI
+        $params = array_slice($matches, 1);
+
+        // Instancier le contrôleur et appeler la méthode
+        $controller = new $route['controller']();
+        call_user_func_array([$controller, $route['action']], $params);
+
+        echo "hello";
+
+        exit();
     }
 }
 
-//route for users
-pathFile('/register/user', "POST", 'auth/create_user.php');
-pathFile('/login/user', "POST", 'auth/login_user.php');
+// Gérer les erreurs 404
+header('HTTP/1.0 404 Not Found');
+echo $uri;
 
 ?>
+

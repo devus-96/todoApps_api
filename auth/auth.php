@@ -1,6 +1,6 @@
 <?php
 
-require_once "../action/config.php";
+require_once "../utils/config.php";
 
 /*$_SERVER est un tableau contenant des informations telles que les en-têtes, les chemins et les emplacements des scripts.
 ici il sert a savoir si la méthode de récupération est GET*/

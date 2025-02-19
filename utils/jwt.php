@@ -9,7 +9,6 @@ function generateJWT ($userdata) {
     //la date d'expiration
     $expire = $issuedAt->modify('+6 minutes')->getTimestamp();
     $serverName = "127.0.0.1:8000";
-    $username = $userdata;
 
     $tab = [
         "iat" => $issuedAt->getTimestamp(),

@@ -2,7 +2,7 @@
 declare(strict_types = 1);
 
 
-require_once "../action/config.php";
+require_once "../utils/config.php";
 require_once "../vendor/autoload.php";
 
 
