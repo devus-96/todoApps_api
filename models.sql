@@ -13,6 +13,10 @@ CREATE TABLE user_project (
     foreign key (user_id) references users(id) on delete cascade
     foreign key (project_id) references project 
 );
+
+ALTER TABLE task ADD COLUMN name VARCHAR(150) 
+ALTER TABLE task ADD COLUMN priority VARCHAR(150) 
+ALTER TABLE task ALTER COLUMN name SET NOT NULL;
 CREATE TABLE Task (
     id SERIAL PRIMARY KEY,
     creation_date DATE NOT NULL,
@@ -40,6 +44,11 @@ CREATE TABLE Project (
     participants JSON NOT NULL,
     status VARCHAR(150) NOT NULL,
 );
+
+ALTER TABLE calendar DROP type 
+ALTER TABLE calendar ADD COLUMN tasks JSON
+ALTER TABLE calendar RENAME start_date TO date
+ALTER TABLE calendar DROP end_date 
 
 CREATE TABLE calendar (
     id serial primary key,

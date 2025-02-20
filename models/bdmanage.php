@@ -4,7 +4,7 @@ class BD {
    private $user = "postgres";
    private $dbname = "appmanagebd";
    private $password = "daus985220";
-   private $data;
+   public $data;
    public $pdo;
 
    
@@ -24,7 +24,7 @@ class BD {
        }
     }
 
-    public function alterinsert ($data, $table) {
+    public function alterinsert (array $data, string $table): string {
       $i = 0;
       $prevcammand = '';
       $prevcammand2 = '';
@@ -38,7 +38,7 @@ class BD {
       return $command;
     }
     
-    public function pdotable ($data) {
+    public function pdotable ($data): array {
         $tab = array();
         foreach ($data as $key => $value) {
           $tab[":$key"] = $value;
@@ -46,19 +46,37 @@ class BD {
         return $tab;
     }
 
-    function insert ($table) {
+    function insert (string $table): bool {
       $value = $this->alterinsert($this->data, $table);
       $tab = $this->pdotable($this->data);
       $user = $this->pdo->prepare($value);
-      $user->execute($tab);
+      $response = $user->execute($tab);
+
+      return $response;
    }
 
-   function select ($table, $selected, $where) {
+   function search (string $table, string $selected, string $where): mixed {
     $get = $this->pdo->prepare("SELECT $selected FROM $table WHERE $where = :$where");
     $get->execute([":$where" => $this->data[$where]]);
     $res = $get->fetch(PDO::FETCH_ASSOC);
 
     return $res;
+  }
+
+  public function update (string $table, mixed $id): bool {
+    foreach ($this->data as $key => $value) {
+        $alter = $this->pdo->prepare("ALTER TABLE $table WHERE id = :id ALTER COLUNM $key = :value");
+        $response = $alter->execute([":id" => $id, ":value" => $value]);
+
+        return $response;
+    }
+  }
+
+  public function delete (string $table, mixed $id): bool {
+    $drop = $this->pdo->prepare("DROP TABLE $table WHERE id = :id");
+    $response = $drop->execute([":id" => $id['id']]);
+
+    return $response;
   }
 
 }

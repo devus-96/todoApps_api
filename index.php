@@ -28,15 +28,13 @@ foreach ($routes as $route) {
         $controller = new $route['controller']();
         call_user_func_array([$controller, $route['action']], $params);
 
-        echo "hello";
-
         exit();
     }
 }
 
 // Gérer les erreurs 404
 header('HTTP/1.0 404 Not Found');
-echo $uri;
+echo 'routes not found';
 
 ?>
 

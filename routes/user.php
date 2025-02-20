@@ -5,30 +5,14 @@ return [
             'method' => 'POST',
             'pattern' => '#^/register/user(?:\?.*)?$#',
             'controller' => 'UserController',
-            'action' => 'createUser'
+            'action' => 'create'
         ],
         [
             'method' => 'POST',
-            'pattern' => '#^/login/user$#',
+            'pattern' => '#^/login/user(?:\?.*)?$#',
             'controller' => 'UserController',
-            'action' => 'getUser'
+            'action' => 'get'
         ],
     ]
 
 ?>
-
-return [
-    [
-        'method' => 'GET',
-        'pattern' => '#^/users/(\d+)$#',
-        'controller' => 'UserController',
-        'action' => 'show'
-    ],
-    [
-        'method' => 'POST',
-        'pattern' => '#^/users$#',
-        'controller' => 'UserController',
-        'action' => 'store'
-    ],
-    // Ajoutez d'autres routes ici
-];

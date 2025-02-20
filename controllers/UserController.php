@@ -8,10 +8,8 @@ require $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
 
 class UserController {
 
-    public function createUser () {
+    public function create () {
         $data = json_decode(file_get_contents('php://input'), true);
-
-        echo $_POST['firstname'];
 
         // Vérifier si les données sont valides et contiennent les clés obligatoires
         $requiredKeys = ['firstname', 'lastname', 'email', 'password'];
@@ -64,41 +62,50 @@ class UserController {
         }
     }
 
-    public function getUser () {
+    public function get () {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if (empty($data)) {
-            try {
-                $user = new BD($data);
-                $response = $user->select('users', '*', 'email');
+        // Vérifier si les données sont valides et contiennent les clés obligatoires
+        $requiredKeys = ['firstname', 'lastname', 'email', 'password'];
+        $missingKeys = array_diff($requiredKeys, array_keys($data));
 
-                if ($response) {
-                    $getpassword = $user->select('users', 'password', 'email');
-                    $passworVerify = password_verify($data['password'], $getpassword['password']);
+        if (!empty($missingKeys)) {
+            // Renvoyer une erreur 400 si des champs obligatoires sont manquants
+            header("HTTP/1.1 400 Bad Request");
+            echo json_encode([
+                'error' => 'Missing required fields',
+                'missing_fields' => array_values($missingKeys)
+            ]);
+            return;
+        }
 
-                    $response['token'] = generateJWT($data["email"]);
+        try {
+            $user = new BD($data);
+            $response = $user->search('users', '*', 'email');
 
-                    if ($passworVerify) {
-                        header('HTTP/1.1 200 OK');
-                        echo json_encode([
-                            'firstname' => $response['firstname'],
-                            'lastname' => $response['lastname'],
-                            'token' => $response['token']
-                        ]);
-                    } else {
-                        header('HTTP/1.1 401 Unauthorized');
-                        echo "the password you're just entered is wrong !!!";
-                    }
+            if ($response) {
+                $getpassword = $user->search('users', 'password', 'email');
+                $passworVerify = password_verify($data['password'], $getpassword['password']);
+
+                $response['token'] = generateJWT($data["email"]);
+
+                if ($passworVerify) {
+                    header('HTTP/1.1 200 OK');
+                    echo json_encode([
+                        'firstname' => $response['firstname'],
+                        'lastname' => $response['lastname'],
+                        'token' => $response['token']
+                    ]);
                 } else {
-                    header('HTTP/1.1 404 Not Found');
-                    echo "i don't find this email, please verify email !!!!";
+                    header('HTTP/1.1 401 Unauthorized');
+                    echo "the password you're just entered is wrong !!!";
                 }
-            } catch (PDOException $e) {
-                $e->getMessage();
+            } else {
+                header('HTTP/1.1 404 Not Found');
+                echo "i don't find this email, please verify email !!!!";
             }
-        } else {
-            header('HTTP/1.1 400 Bad request');
-            echo "check fields";
+        } catch (PDOException $e) {
+            $e->getMessage();
         }
     }
 
