@@ -3,13 +3,13 @@
 return [
         [
             'method' => 'POST',
-            'pattern' => '#^/register/user(?:\?.*)?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[^?]+)(?:\?(.*))?$#',
             'controller' => 'UserController',
             'action' => 'create'
         ],
         [
             'method' => 'POST',
-            'pattern' => '#^/login/user(?:\?.*)?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[^?]+)(?:\?(.*))?$#',
             'controller' => 'UserController',
             'action' => 'get'
         ],

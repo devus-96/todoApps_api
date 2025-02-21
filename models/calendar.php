@@ -14,7 +14,7 @@ class Calendar extends BD {
    }
 
    public function insertCalendar () {
-        $get = $this->pdo->prepare("SELECT * FROM task WHERE startdate start_date = :date");
+        $get = $this->pdo->prepare("SELECT * FROM task WHERE start_date = :date");
         $get->execute([
             ":date" => $this->data['startdate'],
         ]);

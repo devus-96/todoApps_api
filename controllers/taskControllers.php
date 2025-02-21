@@ -7,9 +7,8 @@ require $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
 require $_SERVER['DOCUMENT_ROOT'] . '/models/task.php';
 
 class TaskController {
-    public function get () {
+    public function get ($id) {
         try { 
-            $id = ["id" => $_GET['id']]; // recuperer l'id de la tache 
             $response = new BD($id);
             $task = $response->search("task", "*", "id");
 

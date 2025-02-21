@@ -3,25 +3,25 @@
 return [
         [
             'method' => 'POST',
-            'pattern' => '#^/create/taks(?:\?.*)?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[^?]+)(?:\?(.*))?$#',
             'controller' => 'TaskController',
             'action' => 'create'
         ],
         [
             'method' => 'PUT',
-            'pattern' => '#^/update/user(?:\?.*)?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[^?]+)(?:\?(.*))?$#',
             'controller' => 'TaskController',
             'action' => 'update'
         ],
         [
             'method' => 'GET',
-            'pattern' => '#^/search/user(?:\?.*)?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[^?]+)(?:\?(.*))?$#',
             'controller' => 'TaskController',
             'action' => 'get'
         ],
         [
             'method' => 'DELETE',
-            'pattern' => '#^/delete/user(?:\?.*)?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[^?]+)(?:\?(.*))?$#',
             'controller' => 'TaskController',
             'action' => 'delete'
         ]
