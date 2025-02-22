@@ -138,7 +138,7 @@ class UserController {
         }
     }
 
-    public function update ($id) {
+    public function update () {
         $data = json_decode(file_get_contents('php://input'), true);
         $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
         $token = explode('Bearer', $authorizationHeader)[1];
@@ -148,7 +148,7 @@ class UserController {
             echo $response;
         } else {
             // Token valide, modifier les attribut du users
-            $id = $response['user']['id'];
+            $id = ['id' => $response['user']['id']];
             $user = new BD($data);
             $response = $user->update('users', $id);
             if ($response) {

@@ -25,7 +25,7 @@ class BD {
        }
     }
 
-    public function alterinsert (array $data, string $table): string {
+    private function alterdata (array $data, string $table): string {
       $i = 0;
       $prevcammand = '';
       $prevcammand2 = '';
@@ -38,6 +38,26 @@ class BD {
       $command = 'INSERT INTO'. ' '. $table. ' ' .'('. $prevcammand. ')'.  'VALUES'. '('.$prevcammand2. ')' ;
       return $command;
     }
+
+    private function alterDataPatch (array $data, string $table, mixed $where) {
+      $i = 0;
+      $j = 0;
+      $prevcammand = '';
+      $command = '';
+      $where_condition = '';
+      foreach($data as $key => $value) {
+        $pre = ($i > 0)?', ':''; 
+        $prevcammand .= $pre.$key = ':'.$key;
+        $i++;
+      }
+      foreach ($where as $key => $value) {
+        $pre = ($j > 0 && $j < count($where) - 1)?' AND ':''; 
+        $where_condition = $pre.$key = $value;
+        $i++;
+      }
+      $command = "UPDATE TABLE $table SET $prevcammand  WHERE $where_condition";
+      return $command;
+    }
     
     public function pdotable ($data): array {
         $tab = array();
@@ -48,7 +68,7 @@ class BD {
     }
 
     function insert (string $table): bool {
-      $value = $this->alterinsert($this->data, $table);
+      $value = $this->alterdata($this->data, $table);
       $tab = $this->pdotable($this->data);
       $user = $this->pdo->prepare($value);
       $response = $user->execute($tab);
@@ -64,13 +84,13 @@ class BD {
     return $res;
   }
 
-  public function update (string $table, mixed $id): bool {
-    foreach ($this->data as $key => $value) {
-        $alter = $this->pdo->prepare("ALTER TABLE $table WHERE id = :id ALTER COLUNM $key = :value");
-        $response = $alter->execute([":id" => $id, ":value" => $value]);
+  public function update (string $table, mixed $params): bool {
+        $value = $this->alterDataPatch($this->data, $table, $params);
+        $tab = $this->pdotable($this->data);
+        $alter = $this->pdo->prepare($value);
+        $response = $alter->execute($tab);
 
         return $response;
-    }
   }
 
   public function delete (string $table, mixed $id): bool {

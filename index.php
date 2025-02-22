@@ -13,7 +13,7 @@ error_reporting(E_ALL);
 
 // Définir les routes
 $routes = require_once 'routes/user.php';
-//$routes = array_merge($routes, require_once 'routes/task.php');
+$routes = array_merge($routes, require_once 'routes/task.php');
 
 // Récupérer la méthode et l'URI de la requête
 $method = $_SERVER['REQUEST_METHOD'];

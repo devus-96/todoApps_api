@@ -87,3 +87,4 @@ CREATE TABLE day (
 ALTER TABLE task ADD CONSTRAINT project_fkey FOREIGN KEY (project_id) REFERENCES project (id);
 CREATE INDEX idx_email ON users(email);
 ALTER TABLE users ADD CONSTRAINT email_key UNIQUE (email)
+ALTER TABLE calendar ADD CONSTRAINT start_date_key UNIQUE (start_date)

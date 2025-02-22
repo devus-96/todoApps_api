@@ -15,7 +15,7 @@ define("DB_PASS", $_ENV['DB_PASS']);
 define("JWT_SECRET", $_ENV['JWT_SECRET']);
 
 //google api configuration
-define("GOOGLE_CLIENT_ID", '');
-define("GOOGLE_CLIENT_SECRETE", "");
-define("GOOGLE_REDIRET_URL", "http://localhost:3000/auth/callback");
+define("GOOGLE_CLIENT_ID", $_ENV['GOOGLE_CLIENT_ID']);
+define("GOOGLE_CLIENT_SECRETE", $_ENV['GOOGLE_CLIENT_SECRETE']);
+define("GOOGLE_REDIRET_URL", $_ENV['GOOCLE_REDIRECT']);
 ?>
