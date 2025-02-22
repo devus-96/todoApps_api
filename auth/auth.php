@@ -1,6 +1,6 @@
 <?php
 
-require_once "../utils/config.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . "/utils/google.php";
 
 /*$_SERVER est un tableau contenant des informations telles que les en-têtes, les chemins et les emplacements des scripts.
 ici il sert a savoir si la méthode de récupération est GET*/

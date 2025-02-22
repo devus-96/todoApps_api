@@ -2,8 +2,8 @@
 declare(strict_types = 1);
 
 
-require_once "../utils/config.php";
-require_once "../vendor/autoload.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . "/utils/google.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
 
 
 
@@ -20,6 +20,6 @@ $gUser["email"] = $userinfo->getEmail();
 $gUser["firstname"] = $userinfo->getGivenName();
 $gUser["lastname"] = $userinfo->getFamilyName();
 $gUser['id'] = $userinfo->getId();
-$gUser['oauth_provider'] = 'google';
+$gUser['provider'] = 'google';
 
 ?>

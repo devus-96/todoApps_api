@@ -2,9 +2,9 @@
 //cette ligne est pour l'empecher
 declare(strict_types = 1);
 
-require $_SERVER['DOCUMENT_ROOT'] . '/utils/jwt.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/models/task.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/jwt.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/models/task.php';
 
 class TaskController {
     public function get ($id) {

@@ -13,35 +13,41 @@ header("Access-Control-Allow-Headers: Content-Type");
 if (isset($_GET['code'])) { // $_GET recupère les paramètres envoyés via URL
     
     try {
-        require_once "../action/auth_google.php";
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/models/google.php';
 
         if (!empty($gUser)) {
             $user = new BD($gUser);
-            $checkEmail = $user->select('users', '*', 'email');
-
+            $checkEmail = $user->search('users', '*', 'email');
             if ($checkEmail) {
-                $checkPassword = $user->select('users', 'password', 'email');
+                $checkProvider = $user->search('users', 'providre', 'email');
         
-                if ($checkPassword['password'] !== "") {
+                if ($checkProvider['provider'] === "") {
                     header("HTTP/1.1 400 Bad request");
                     echo "Please register with your email, as you authenticated yourself the first time this way !!!";
                 } else {
-                    $token = generateJWT($data["email"]);
+                    $token = generateJWT(
+                        $gUser["email"], 
+                        $gUser["firstname"],
+                        $gUser['provider'],
+                        $gUser['id'],
+                    );
                     header("HTTP/1.1 200 OK");
                 }
             } else {
-                echo "hello2";
-                $stmg = $pdo->prepare("INSERT INTO users (firstname, lastname, email, password, role) VALUES (:firstName, :lastName, :email, :password, :role)");
+                $stmg = $pdo->prepare("INSERT INTO users (firstname, lastname, email) VALUES (:firstName, :lastName, :email)");
                 //...executer par la fonction execute() de la valeur renvoye par prepare()
                 $stmg->execute([
                     ":firstName" => $gUser["firstname"],
                     ":lastName" => $gUser["lastname"],
                     ":email" => $gUser["email"],
-                    ":password" => '',
-                    "role" => 'administrator',
                 ]);
     
-                $token = generateJWT($data["email"]);
+                $token = generateJWT(
+                    $gUser["email"], 
+                    $gUser["firstname"],
+                    $gUser['provider'],
+                    $gUser['id'],
+                );
                 header("HTTP/1.1 200 OK");
             }
         }

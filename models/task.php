@@ -1,5 +1,5 @@
 <?php 
-require $_SERVER['DOCUMENT_ROOT'] . '/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
 
 class Task extends BD {
  

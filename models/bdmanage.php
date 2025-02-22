@@ -1,9 +1,10 @@
 <?php
+
 class BD {
-   private $host = 'localhost';
-   private $user = "postgres";
-   private $dbname = "appmanagebd";
-   private $password = "daus985220";
+   private $host = HOST;
+   private $user = BD_USER;
+   private $dbname = DB_NAME;
+   private $password = DB_PASS;
    public $data;
    public $pdo;
 

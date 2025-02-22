@@ -1,6 +1,7 @@
 <?php
 require $_SERVER['DOCUMENT_ROOT'] . '/utils/cors.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/controllers/UserController.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/controllers/userController.php';
+require $_SERVER['DOCUMENT_ROOT'] . '/controllers/taskController.php';
 require __DIR__ . '/vendor/autoload.php';
 
 cors();
@@ -12,7 +13,7 @@ error_reporting(E_ALL);
 
 // Définir les routes
 $routes = require_once 'routes/user.php';
-$routes = array_merge($routes, require_once 'routes/task.php');
+//$routes = array_merge($routes, require_once 'routes/task.php');
 
 // Récupérer la méthode et l'URI de la requête
 $method = $_SERVER['REQUEST_METHOD'];
@@ -21,23 +22,15 @@ $uri = $_SERVER['REQUEST_URI'];
 // Trouver la route correspondante
 foreach ($routes as $route) {
     if ($route['method'] === $method && preg_match($route['pattern'], $uri, $matches)) {
-        $protocolAndDomain = $matches[1] ?? ''; // Protocole et domaine (optionnel)
-        $path = $matches[2]; // Chemin de l'URL
-        $queryString = $matches[3]; // Chaîne de paramètres
-    
-        // Découper les paramètres en un tableau associatif
+        // decouper le resultat
+        $pathnameAndParams = explode('?', $matches[0]); 
+        // recuperer les parametres
+        $queryString = $pathnameAndParams[1];
+        // Découper les paramètres en un tableau associatif 
         parse_str($queryString, $params);
-    
-        // Résultat final
-        $result = [
-            "path" => $path,
-            "params" => $params
-        ];
-
-        // Instancier le contrôleur et appeler la méthode
-        $controller = new $route['controller']();
-        call_user_func_array([$controller, $route['action']], $result["params"]);
-
+         // Instancier le contrôleur et appeler la méthode
+         $controller = new $route['controller']();
+         call_user_func_array([$controller, $route['action']], $params);
         exit();
     }
 }
