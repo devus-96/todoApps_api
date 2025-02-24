@@ -2,16 +2,15 @@
 //cette ligne est pour l'empecher
 declare(strict_types = 1);
 
-require $_SERVER['DOCUMENT_ROOT'] . '/utils/jwt.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/models/calendar.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/models/calendar.php';
 
 
 class CalendarControllers {
     public function get ($params) {
         try {
             $response = new Calendar(null);
-            $tasks = $response->selectByDay($params);
+            $tasks = $response->selectByDay($params, 'calendar', '*');
 
             if ($tasks) {
                 header('HTTP/1.1 200 OK');

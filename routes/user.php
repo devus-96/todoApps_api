@@ -3,21 +3,27 @@
 return [
         [
             'method' => 'POST',
-            'pattern' => '#^(https?://[^/]+)?(/[users/register]+)(?:\?(.*))?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[user/register]+)(?:\?(.*))?$#',
             'controller' => 'UserController',
             'action' => 'create'
         ],
         [
             'method' => 'POST',
-            'pattern' => '#^(https?://[^/]+)?(/[users/login]+)(?:\?(.*))?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[user/login]+)(?:\?(.*))?$#',
             'controller' => 'UserController',
             'action' => 'get'
         ],
         [
             'method' => 'PATCH',
-            'pattern' => '#^(https?://[^/]+)?(/[users/update]+)(?:\?(.*))?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[user/update]+)(?:\?(.*))?$#',
             'controller' => 'UserController',
             'action' => 'update'
+        ],
+        [
+            'method' => 'DELETE',
+            'pattern' => '#^(https?://[^/]+)?(/[user/delete]+)(?:\?(.*))?$#',
+            'controller' => 'UserController',
+            'action' => 'delete'
         ],
     ]
 

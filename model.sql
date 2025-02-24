@@ -1,11 +1,90 @@
-CREATE TABLE user (
+CREATE TABLE teams (
     id SERIAL PRIMARY KEY,
-    firstname VARCHAR(150) NOT NULL,
-    lastname VARCHAR(150) NOT NULL
-    role VARCHAR(30) CHECK (role IN ('administrator', 'menber')),
-    password VARCHAR(150),
-    provider VARCHAR(30) CHECK (role IN ('google', 'github')),
-    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+    name VARCHAR(150) NOT NULL,
+    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE roles (
+    user_id integer not null,
+    team_id integer not null,
+    PRIMARY KEY(user_id, team_id),
+    foreign key (team_id) references teams(id) on delete cascade,
+    foreign key (user_id) references users(id)
+);
+
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    team_id integer not null,
+    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    start_time DATE,
+    deadline DATE,
+    status VARCHAR(30) CHECK (status IN ('cancel', 'completed', 'in progress', 'done', 'plan')),
+    foreign key (team_id) references teams(id) on delete cascade
+);
+
+CREATE TABLE calendar (
+    id SERIAL PRIMARY KEY,
+    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    start_date DATE,
+    deadline DATE,
+    repeat JSON,
+    status VARCHAR(30) CHECK (status IN ('cancel', 'completed', 'in progress', 'done', 'plan'))
+);
+
+CREATE TABLE meetings (
+    id SERIAL PRIMARY KEY,
+    team_id integer not null,
+    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    start DATE,
+    status VARCHAR(30) CHECK (status IN ('cancel', 'in progress', 'done', 'plan')),
+    foreign key (team_id) references teams(id)
+);
+
+CREATE TABLE plan (
+    calendar_id integer not null,
+    meeting_id integer not null,
+    PRIMARY KEY(calendar_id, meeting_id),
+    foreign key (calendar_id) references calendar(id) on delete cascade,
+    foreign key (meeting_id) references meetings(id)
+);
+
+CREATE TABLE inviation (
+    id SERIAL PRIMARY KEY,
+    status VARCHAR(30) CHECK (status IN ('accepted', 'refused', 'pending')),
+    email VARCHAR(150),
+    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    creator VARCHAR(150),
+    team_id integer not null,
+    foreign key (team_id) references teams(id) on delete cascade
+);
+
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    start_date DATE NOT NULL,
+    deadline DATE,
+    start_time VARCHAR(10) NOT NULL,
+    end_time VARCHAR(10) NOT NULL,
+    repeat JSON,
+    creator VARCHAR(150),
+    assign TEXT[],
+    tags TEXT[] NOT NULL,
+    user_id integer,
+    project_id integer,
+    status VARCHAR(10) NOT NULL CHECK (status IN ('cancel', 'completed', 'in progress', 'done', 'plan')),
+    priority VARCHAR(10) CHECK (status IN ('high', 'low', 'medium')),
+    foreign key (user_id) references users(id) on delete cascade,
+    foreign key (project_id) references projects(id) on delete cascade
+);
+
+CREATE TABLE schedules (
+    calendar_id integer not null,
+    task_id integer not null,
+    PRIMARY KEY(calendar_id, task_id),
+    foreign key (calendar_id) references calendar(id) on delete cascade,
+    foreign key (task_id) references tasks(id)
 );
 
 CREATE TABLE notes (
@@ -15,76 +94,3 @@ CREATE TABLE notes (
     contenu TEXT,
     foreign key (user_id) references users(id) on delete cascade
 );
-
-CREATE TABLE inviation (
-    user_id integer not null,
-    team_id integer not null,
-    PRIMARY KEY(team_id, user_id),
-    foreign key (user_id) references users(id),
-    foreign key (team_id) references team(id) on delete cascade
-);
-
-
-CREATE TABLE team (
-    id NUMBER PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
-    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
-);
-
-CREATE TABLE meeting (
-    id SERIAL PRIMARY KEY,
-    team_id integer not null,
-    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    start DATE,
-    status VARCHAR(30) CHECK (status IN ('schedule', 'cancel', 'in progress', 'done')),
-    foreign key (team_id) references team(id)
-);
-
-CREATE TABLE project (
-    id SERIAL PRIMARY KEY,
-    team_id integer not null,
-    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    start_time DATE,
-    deadline DATE,
-    status VARCHAR(30) CHECK (status IN ('schedule', 'cancel', 'in progress', 'done')),
-    foreign key (team_id) references team(id) on delete cascade
-);
-
-CREATE TABLE task (
-    id SERIAL PRIMARY KEY,
-    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    start_date DATE,
-    deadline DATE,
-    start_time VARCHAR(10),
-    end_time VARCHAR(10),
-    status VARCHAR(30) CHECK (status IN ('schedule', 'cancel', 'in progress', 'done')),
-    repeat JSON
-);
-CREATE TABLE schedule (
-    day_id integer not null,
-    task_id integer not null,
-    PRIMARY KEY(day_id, task_id),
-    foreign key (day_id) references day(id) on delete cascade,
-    foreign key (task_id) references task(id)
-);
-CREATE TABLE plan (
-    day_id integer not null,
-    meeting_id integer not null,
-    PRIMARY KEY(day_id, meeting_id),
-    foreign key (day_id) references day(id) on delete cascade,
-    foreign key (meeting_id) references meeting(id)
-);
-
-CREATE TABLE day (
-    id SERIAL PRIMARY KEY,
-    creation TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    start_date DATE,
-    deadline DATE,
-    repeat JSON,
-    status VARCHAR(30) CHECK (status IN ('schedule', 'cancel', 'in progress', 'done'))
-);
-
-ALTER TABLE task ADD CONSTRAINT project_fkey FOREIGN KEY (project_id) REFERENCES project (id);
-CREATE INDEX idx_email ON users(email);
-ALTER TABLE users ADD CONSTRAINT email_key UNIQUE (email)
-ALTER TABLE calendar ADD CONSTRAINT start_date_key UNIQUE (start_date)

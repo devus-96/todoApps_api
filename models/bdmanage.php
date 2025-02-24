@@ -1,15 +1,17 @@
 <?php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/config.php';
+
 class BD {
    private $host = HOST;
    private $user = BD_USER;
    private $dbname = DB_NAME;
    private $password = DB_PASS;
-   public $data;
-   public $pdo;
+   protected $data;
+   protected $pdo;
 
    
-   function __construct($data) {
+   public function __construct($data) {
         $this->data = $data;
         try {
           $this->pdo = new PDO("pgsql:host=$this->host;dbname=$this->dbname",$this->user, $this->password);
@@ -25,7 +27,7 @@ class BD {
        }
     }
 
-    private function alterdata (array $data, string $table): string {
+    private function alter_insert_req (array $data, string $table, $result): string {
       $i = 0;
       $prevcammand = '';
       $prevcammand2 = '';
@@ -35,28 +37,50 @@ class BD {
          $prevcammand2 .= $pre.':'.$key;
          $i++;
       }
-      $command = 'INSERT INTO'. ' '. $table. ' ' .'('. $prevcammand. ')'.  'VALUES'. '('.$prevcammand2. ')' ;
+      return 'INSERT INTO'. ' '. $table. ' ' .'('. $prevcammand. ')'.  'VALUES'. '('.$prevcammand2. ')' . 'RETURNING ' . $result ;
+    }
+
+    private function alter_search_req (array $data, string $table, mixed $elt): string {
+      $i = 0;
+      $prevcammand = '';
+      foreach($data as $key => $value) {
+        $pre = ($i > 0)?' AND ':''; 
+        $prevcammand .= "$pre$key = :$key";
+        $i++;
+      }
+      return "SELECT $elt FROM $table WHERE $prevcammand";
+    }
+
+    private function alter_delete_req (string $table, mixed $where) {
+      $j = 0;
+      $where_condition = ''; 
+      foreach ($where as $key => $value) {
+        $pre = ($j > 0 && $j < count($where))?' AND ':''; 
+        $where_condition .= "$pre$key = $value";
+        $j++;
+      }
+      $command = "DELETE FROM $table WHERE $where_condition";
       return $command;
     }
 
-    private function alterDataPatch (array $data, string $table, mixed $where) {
+    private function alter_update_req (array $data, string $table, mixed $where) {
       $i = 0;
       $j = 0;
       $prevcammand = '';
       $command = '';
-      $where_condition = '';
+      $where_condition = ''; 
       foreach($data as $key => $value) {
         $pre = ($i > 0)?', ':''; 
-        $prevcammand .= $pre.$key = ':'.$key;
+        $prevcammand .= "$pre$key = :$key";
         $i++;
       }
       foreach ($where as $key => $value) {
-        $pre = ($j > 0 && $j < count($where) - 1)?' AND ':''; 
-        $where_condition = $pre.$key = $value;
-        $i++;
+        $pre = ($j > 0 && $j < count($where))?' AND ':''; 
+        $where_condition .= "$pre$key = $value";
+        $j++;
       }
-      $command = "UPDATE TABLE $table SET $prevcammand  WHERE $where_condition";
-      return $command;
+      $command = "UPDATE $table SET $prevcammand  WHERE $where_condition";
+      return  $command;
     }
     
     public function pdotable ($data): array {
@@ -67,13 +91,24 @@ class BD {
         return $tab;
     }
 
-    function insert (string $table): bool {
-      $value = $this->alterdata($this->data, $table);
+    function insert (string $table, $result): mixed {
+      $value = $this->alter_insert_req($this->data, $table, $result);
       $tab = $this->pdotable($this->data);
       $user = $this->pdo->prepare($value);
-      $response = $user->execute($tab);
+      $user->execute($tab);
+      $result = $user->fetch(PDO::FETCH_ASSOC);
 
-      return $response;
+      return $result;
+   }
+
+   function get (string $table, string $elt) {
+    $value = $this->alter_search_req($this->data, $table, $elt);
+    $tab = $this->pdotable($this->data);
+    $get = $this->pdo->prepare($value);
+    $get->execute($tab);
+    $res = $get->fetchAll(PDO::FETCH_CLASS);
+
+    return $res;
    }
 
    function search (string $table, string $selected, string $where): mixed {
@@ -85,7 +120,7 @@ class BD {
   }
 
   public function update (string $table, mixed $params): bool {
-        $value = $this->alterDataPatch($this->data, $table, $params);
+        $value = $this->alter_update_req($this->data, $table, $params);
         $tab = $this->pdotable($this->data);
         $alter = $this->pdo->prepare($value);
         $response = $alter->execute($tab);
@@ -93,9 +128,10 @@ class BD {
         return $response;
   }
 
-  public function delete (string $table, mixed $id): bool {
-    $drop = $this->pdo->prepare("DROP TABLE $table WHERE id = :id");
-    $response = $drop->execute([":id" => $id['id']]);
+  public function delete (string $table, mixed $params): bool {
+    $value = $this->alter_delete_req($table, $params);
+    $drop = $this->pdo->prepare($value);
+    $response = $drop->execute();
 
     return $response;
   }

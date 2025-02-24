@@ -6,15 +6,13 @@ use Firebase\JWT\ExpiredException;
 use Firebase\JWT\SignatureInvalidException;
 use Firebase\JWT\BeforeValidException;
 
-function generateJWT(
-    $userdata, 
-    $secretKey = JWT_SECRET, 
-    $expireHours = 24
-    ) {
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/config.php';
+
+function generateJWT($userdata) {
     try {
         $issuedAt = new DateTimeImmutable();
-        $expire = $issuedAt->modify("+$expireHours hours")->getTimestamp();
-        $serverName = "127.0.0.1:8000";
+        $expire = $issuedAt->modify("+24 hours")->getTimestamp();
+        $serverName = "127.0.0.1:8001";
 
         $payload = [
             "iat" => $issuedAt->getTimestamp(),
@@ -24,7 +22,7 @@ function generateJWT(
             "user" => $userdata,
         ];
 
-        $token = JWT::encode($payload, $secretKey, "HS512");
+        $token = JWT::encode($payload, JWT_SECRET, "HS512");
         return $token;
     } catch (Exception $e) {
         // Gestion des erreurs (ex : journalisation)
@@ -33,10 +31,11 @@ function generateJWT(
     }
 } 
 
+
 function decodeJWT($token, $secretKey = JWT_SECRET) {
     try {
         // Décoder le token JWT
-        $decoded = JWT::decode($token, new Key($secretKey, 'HS512'));
+        $decoded = JWT::decode(trim($token), new Key($secretKey, 'HS512'));
 
         // Retourner les données décodées
         return $decoded;

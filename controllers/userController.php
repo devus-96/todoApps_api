@@ -10,6 +10,7 @@ class UserController {
 
     public function create () {
         $data = json_decode(file_get_contents('php://input'), true);
+        echo $data;
 
         // Vérifier si les données sont valides et contiennent les clés obligatoires
         $requiredKeys = ['firstname', 'lastname', 'email', 'password'];
@@ -31,14 +32,14 @@ class UserController {
         try {
             // Insérer l'utilisateur dans la base de données
             $user = new BD($data);
-            $response = $user->insert('users');
+            $response = $user->insert('users', 'id');
 
             if ($response) {
-                $getid = $user->search('users', 'id', 'email');
+                //$getid = $user->search('users', 'id', 'email');
                 $getprovider = $user->search('users', 'provider', 'email');
                 // Générer un token JWT
-                $client['token'] = generateJWT([
-                    'id' => $getid, 
+                $token = generateJWT([
+                    'id' => $response['id'], 
                     'name' => $data['firstname'],
                     'email' => $data['email'],
                     'provider' => $data['provider'],
@@ -50,7 +51,7 @@ class UserController {
                 echo json_encode([
                     'firstname' => $data['firstname'],
                     'lastname' => $data['lastname'],
-                    'token' => $client['token']
+                    'token' => $token
                 ]);
             } else {
                 header("HTTP/1.1 500 SERVER ERROR");
@@ -95,7 +96,9 @@ class UserController {
             $user = new BD($data);
             $response = $user->search('users', 'provider', 'email');
 
-            if ($response !== null) {
+            echo $response['provider'];
+
+            if ($response['provider'] !== null) {
                 header("HTTP/1.1 401 Unauthorized");
                 echo "Please log in with Google, as you did when you first logged in.";
             } else  {
@@ -147,10 +150,11 @@ class UserController {
             // Une erreur s'est produite
             echo $response;
         } else {
+            $array = json_decode(json_encode($response), true);
             // Token valide, modifier les attribut du users
-            $id = ['id' => $response['user']['id']];
+            $params = ['id' => $array['user']['id']];
             $user = new BD($data);
-            $response = $user->update('users', $id);
+            $response = $user->update('users', $params);
             if ($response) {
                 // Renvoyer une réponse JSON avec les données de l'utilisateur et le token
                 header("HTTP/1.1 201 Uddated");
@@ -169,9 +173,11 @@ class UserController {
             // Une erreur s'est produite
             echo $response;
         } else {
-            $id = $response['user']['id'];
+            $array = json_decode(json_encode($response), true);
+            $params =  ['id' => $array['user']['id']];
+            echo $params;
             $user = new BD('');
-            $user->delete('users', $id);
+            $user->delete('users', $params);
         }
     }
 

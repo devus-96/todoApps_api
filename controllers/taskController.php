@@ -2,19 +2,25 @@
 //cette ligne est pour l'empecher
 declare(strict_types = 1);
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/jwt.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/models/task.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/controllers/calendarController.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/calendarController.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/scheduleController.php';
 
 class TaskController {
-    public function get ($id) {
+    public function get ($priority, $status) {
+        $params = ['priority' => $priority, 'status' => $status];
+        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
+        $token = explode('Bearer', $authorizationHeader)[1];
+        $response = decodeJWT($token);
+        $array = json_decode(json_encode($response), true);
         try { 
-            $response = new BD($id);
-            $task = $response->search("task", "*", "id");
-            if ($task) {
+            $params['user_id'] = $array['user']['id'];
+            $tasks = new BD($params);
+            $response = $tasks->get("tasks", "*");
+            echo json_encode($response);
+            if ($response) {
                 header('HTTP/1.1 200 OK');
-                echo json_encode($task);
+                echo json_encode($response);
             } else {
                 header('HTTP/1.1 401 Unauthorized');
                 echo "task not found at this date !!!";
@@ -24,8 +30,14 @@ class TaskController {
         }
     }
 
-    public function create ($dataId) {
+    public function create ($project = null) {
+        //recuperer les donnees de ls taches 
         $data = json_decode(file_get_contents('php://input'), true);
+        //recuperer puis decoder le token
+        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
+        $token = explode('Bearer', $authorizationHeader)[1];
+        $response = decodeJWT($token);
+        $array = json_decode(json_encode($response), true);
 
         // Vérifier si les données sont valides et contiennent les clés obligatoires
         $requiredKeys = ['name', 'tags', 'priority', 'start_time', 'end_time', 'start_date', 'status'];
@@ -38,24 +50,38 @@ class TaskController {
                 'error' => 'Missing required fields',
                 'missing_fields' => array_values($missingKeys)
             ]);
-            return;
+            exit();
         }
         try {
-            $dataId['users_id'] ? $data['users_id'] = $dataId['users_id'] : null;
-            $dataId['projectId'] ? $data['project_id'] = $dataId['projectId'] : null;
-            // Insérer la tache dans la base de données
+            $data['user_id'] = $array['user']['id'];
             $task = new BD($data);
-            $response = $task->insert('task');
+            $response = $task->insert('tasks', 'id');
 
             if ($response) {
+                $response_calendar = '';
                 //verifier si un calendier existe a cette date
-                $calendar = new BD(['start_date' => $data['start_date']]);
-                $response = $calendar->search('calendar', 'start_date', 'start_date');
+                $calendar = new BD([
+                    'start_date' => $data['start_date'],
+                    'user_id' => $array['user']['id']
+                ]);
+                $response_calendar = $calendar->search('calendar', 'id', 'start_date');
                 // si non : cree un nouveau calendier
-                if (!$response) {
-                    $calendar = new CalendarControllers();
-                    $calendar->create(['start_date' => $data['start_date']]);
+                if (!$response_calendar) {
+                    $calendar = new BD([
+                        'start_date' => $data['start_date'],
+                        'user_id' => $array['user']['id']
+                    ]);
+                    $response_calendar = $calendar->insert('calendar', 'id');
                 }
+                if ($response_calendar) {
+                    //echo json_encode($response_calendar);
+                    $schedule = new BD([
+                        'calendar_id' => $response_calendar['id'], 
+                        'task_id' => $response['id']
+                    ]);
+                    $schedule->insert('schedules', 'task_id');
+                }
+                
                 // server response
                 header("HTTP/1.1 201 Created");
                 echo "The task has been created successfully";
@@ -68,12 +94,18 @@ class TaskController {
         }
     } 
 
-    public function update ($id) {
-        // update la tache dans la base de données
-        $data = json_decode(file_get_contents('php://input'), true); // recuperer les donnees contenus dans body
+    public function update ($id, $project_id=null) {
+        //recuperer les donnees de ls taches 
+        $data = json_decode(file_get_contents('php://input'), true);
+        // recuperer les infos du users
+        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
+        $token = explode('Bearer', $authorizationHeader)[1];
+        $response = decodeJWT($token);
+        $array = json_decode(json_encode($response), true);
+        $params = ['id' => $id, 'user_id' => $array['user']['id']];
         try {
             $task = new BD($data);
-            $res = $task->update('task', $id);
+            $res = $task->update('tasks', $params);
             if ($res) {
                 header("HTTP/1.1 201 Updated");
                 echo "The task has been updated successfully";
@@ -90,12 +122,23 @@ class TaskController {
     }
 
     public function delete ($id) {
+        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
+        $token = explode('Bearer', $authorizationHeader)[1];
+        $response = decodeJWT($token);
+        $array = json_decode(json_encode($response), true);
         try {
+            $params = ['id' => $id, 'user_id' => $array['user']['id']];
+            $params_schedule = ['task_id' => $id];
             $task = new BD($id);
-            $response = $task->delete('task', $id['id']);
-            if ($response) {
-                header("HTTP/1.1 201 Deleted");
-                echo "The task has been deleted successfully";
+            $response_schedule = $task->delete('schedules', $params_schedule);
+            if ($response_schedule) {
+                $response = $task->delete('tasks', $params);
+                if ($response) {
+                    header("HTTP/1.1 201 Deleted");
+                    echo "The task has been deleted successfully";
+                } else {
+                    header("HTTP/1.1 500 SERVER ERROR");
+                }
             } else {
                 header("HTTP/1.1 500 SERVER ERROR");
             }

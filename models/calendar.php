@@ -1,5 +1,5 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
 
 class Calendar extends BD {
    public function selectByMonthAndWeek  ($params) {
@@ -14,10 +14,25 @@ class Calendar extends BD {
         return $response;
    }
 
-   public function selectByDay ($params) {
-    $get = $this->pdo->prepare("SELECT * FROM calendar WHERE startdate = :startdate AND user_id = :userId");
+   public function selectByDay ($params, $table, $select) {
+    $get = $this->pdo->prepare("SELECT $select FROM $table WHERE start_date = :startdate AND user_id = :userId");
     $get->execute([
-        ":startdate" => $params['startdate'],
+        ":startdate" => $params['start_date'],
+        ":userId" => $params['id'],
+    ]);
+    $response = $get->fetch(PDO::FETCH_ASSOC);
+    echo json_encode($response);
+    return $response;
+   }
+
+   public function sort ($params) {
+    $get = $this->pdo->prepare('SELECT * FROM tasks
+                JOIN schedules ON tasks.tasks.id = schedules.tasks_id
+                JOIN calendar ON schedules.calendar_id = calenadar.id
+                WHERE calendar.users_id = :userId AND calendar.start_date = date'
+            );
+    $get->execute([
+        ":date" => $params['startdate'],
         ":userId" => $params['id'],
     ]);
     $response = $get->fetch(PDO::FETCH_ASSOC);

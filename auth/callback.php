@@ -1,7 +1,7 @@
 <?php 
 
-require $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/utils/jwt.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/jwt.php';
 
 // résoudre les problème de cors ...
 
@@ -25,12 +25,12 @@ if (isset($_GET['code'])) { // $_GET recupère les paramètres envoyés via URL
                     header("HTTP/1.1 400 Bad request");
                     echo "Please register with your email, as you authenticated yourself the first time this way !!!";
                 } else {
-                    $token = generateJWT(
-                        $gUser["email"], 
-                        $gUser["firstname"],
-                        $gUser['provider'],
-                        $gUser['id'],
-                    );
+                    $token = generateJWT([
+                        'email' => $gUser["email"], 
+                        'firstname' => $gUser["firstname"],
+                        'provider' => $gUser['provider'],
+                        'id' => $gUser['id'],
+                    ]);
                     header("HTTP/1.1 200 OK");
                 }
             } else {
@@ -43,10 +43,12 @@ if (isset($_GET['code'])) { // $_GET recupère les paramètres envoyés via URL
                 ]);
     
                 $token = generateJWT(
-                    $gUser["email"], 
-                    $gUser["firstname"],
-                    $gUser['provider'],
-                    $gUser['id'],
+                    [
+                        'email' => $gUser["email"], 
+                        'firstname' => $gUser["firstname"],
+                        'provider' => $gUser['provider'],
+                        'id' => $gUser['id'],
+                    ]
                 );
                 header("HTTP/1.1 200 OK");
             }

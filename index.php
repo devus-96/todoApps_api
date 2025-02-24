@@ -1,8 +1,8 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/utils/cors.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/controllers/userController.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/controllers/taskController.php';
-require __DIR__ . '/vendor/autoload.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/cors.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/userController.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/taskController.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 cors();
 // afficher les erreurs en mode de devellopement
