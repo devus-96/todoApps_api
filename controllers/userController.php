@@ -5,17 +5,16 @@ declare(strict_types = 1);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/jwt.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
 
 class UserController {
 
     public function create () {
         $data = json_decode(file_get_contents('php://input'), true);
         echo $data;
-
         // Vérifier si les données sont valides et contiennent les clés obligatoires
         $requiredKeys = ['firstname', 'lastname', 'email', 'password'];
         $missingKeys = array_diff($requiredKeys, array_keys($data));
-
         if (!empty($missingKeys)) {
             // Renvoyer une erreur 400 si des champs obligatoires sont manquants
             header("HTTP/1.1 400 Bad Request");
@@ -25,10 +24,8 @@ class UserController {
             ]);
             return;
         }
-
         // Hacher le mot de passe
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-
         try {
             // Insérer l'utilisateur dans la base de données
             $user = new BD($data);
@@ -91,13 +88,9 @@ class UserController {
             ]);
             return;
         }
-
         try {
             $user = new BD($data);
             $response = $user->search('users', 'provider', 'email');
-
-            echo $response['provider'];
-
             if ($response['provider'] !== null) {
                 header("HTTP/1.1 401 Unauthorized");
                 echo "Please log in with Google, as you did when you first logged in.";
@@ -110,8 +103,8 @@ class UserController {
                         $getid = $user->search('users', 'id', 'email');
                         $getprovider = $user->search('users', 'provider', 'email');
                         $getfirstname = $user->search('users', 'firstname', 'email');
-                        $client['token'] = generateJWT([
-                            'id' => $getid, 
+                        $token = generateJWT([
+                            'id' => $getid['id'], 
                             'name' => $getfirstname,
                             'email' => $data['email'],
                             'provider' => $getprovider,
@@ -121,7 +114,7 @@ class UserController {
                         echo json_encode([
                             'firstname' => $response['firstname'],
                             'lastname' => $response['lastname'],
-                            'token' => $client['token']
+                            'token' => $token
                         ]);
                     } else {
                         header('HTTP/1.1 401 Unauthorized');
@@ -142,15 +135,9 @@ class UserController {
     }
 
     public function update () {
-        $data = json_decode(file_get_contents('php://input'), true);
-        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
-        $token = explode('Bearer', $authorizationHeader)[1];
-        $response = decodeJWT($token);
-        if (is_string($response)) {
-            // Une erreur s'est produite
-            echo $response;
-        } else {
-            $array = json_decode(json_encode($response), true);
+        try {
+            $data = json_decode(file_get_contents('php://input'), true);
+            $array = get_user_info();
             // Token valide, modifier les attribut du users
             $params = ['id' => $array['user']['id']];
             $user = new BD($data);
@@ -162,22 +149,28 @@ class UserController {
             } else {
                 header("HTTP/1.1 500 SERVER ERROR");
             }
+        } catch (PDOException $e) {
+            header("HTTP/1.1 500 SERVER ERROR");
+            echo json_encode([
+                'error' => 'Database error',
+                'message' => $e->getMessage()
+            ]);
         }
+        
     }
 
     public function delete () {
-        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
-        $token = explode('Bearer', $authorizationHeader)[1];
-        $response = decodeJWT($token);
-        if (is_string($response)) {
-            // Une erreur s'est produite
-            echo $response;
-        } else {
-            $array = json_decode(json_encode($response), true);
+        try {
+            $array = get_user_info();
             $params =  ['id' => $array['user']['id']];
-            echo $params;
             $user = new BD('');
             $user->delete('users', $params);
+        } catch (PDOException $e) {
+            header("HTTP/1.1 500 SERVER ERROR");
+            echo json_encode([
+                'error' => 'Database error',
+                'message' => $e->getMessage()
+            ]);
         }
     }
 

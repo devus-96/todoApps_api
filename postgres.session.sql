@@ -1,1 +1,3 @@
-SELECT * FROM tasks WHERE priority = 'low' AND status = 'cancel' AND user_id = 1;
+DELETE FROM schedules;
+DELETE FROM tasks;
+DELETE FROM calendar;

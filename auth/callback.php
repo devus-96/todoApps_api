@@ -11,7 +11,6 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 
 if (isset($_GET['code'])) { // $_GET recupère les paramètres envoyés via URL
-    
     try {
         require_once $_SERVER['DOCUMENT_ROOT'] . '/models/google.php';
 
@@ -59,7 +58,6 @@ if (isset($_GET['code'])) { // $_GET recupère les paramètres envoyés via URL
         echo $checkResult;
         echo json_encode($gUser);
     }
-    
 }
 
 ?>

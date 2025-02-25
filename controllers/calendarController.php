@@ -4,20 +4,26 @@ declare(strict_types = 1);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/models/calendar.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
 
 
 class CalendarControllers {
-    public function get ($params) {
+    public function get ($date) {
         try {
-            $response = new Calendar(null);
-            $tasks = $response->selectByDay($params, 'calendar', '*');
+            // recuperer et decoder le token
+            $array = get_user_info();
+
+            $params = ['date' => $date, 'user_id' => $array['user']['id']];
+
+            $calendar = new Calendar('');
+            $tasks = $calendar->sort_by_day($params);
 
             if ($tasks) {
                 header('HTTP/1.1 200 OK');
                 echo json_encode($tasks);
             } else {
-                header("HTTP/1.1 500 SERVER ERROR");
-                echo "something went wrong";
+                header("HTTP/1.1 400 BAD REQUEST");
+                echo "no tasks exist at this date";
             }
         } catch (PDOException $e) {
             header("HTTP/1.1 500 SERVER ERROR");
@@ -28,12 +34,19 @@ class CalendarControllers {
         }
     }
 
-    //la recuperation pour les semaine e les moi
-    public function getAll ($params) {
+    public function getAll ($start_date, $end_date) {
         try {
-            $response = new Calendar(null);
-    
-            $tasks = $response->selectByMonthAndWeek($params);
+            // recuperer et decoder le token
+            $array = get_user_info();
+
+            $params = [
+                'start_date' => $start_date, 
+                'end_date' => $end_date,
+                'user_id' => $array['user']['id']
+            ];
+
+            $calendar = new Calendar('');
+            $tasks = $calendar->sort_by_month_week($params);
 
             if ($tasks) {
                 header('HTTP/1.1 200 OK');
@@ -42,6 +55,7 @@ class CalendarControllers {
                 header("HTTP/1.1 500 SERVER ERROR");
                 echo "something went wrong";
             }
+
         } catch (PDOException $e) {
             header("HTTP/1.1 500 SERVER ERROR");
             echo json_encode([
@@ -51,27 +65,10 @@ class CalendarControllers {
         }
     }
 
-    public function create ($start_date) {
-        try {
-            $response = new BD($start_date);
-            $tasks = $response->insert('calendar');
-            if ($tasks) {
-                echo 'new calendar create';
-            } else {
-                header("HTTP/1.1 500 SERVER ERROR");
-                echo "something went wrong";
-            }
-        } catch (PDOException $e) {
-            echo json_encode([
-                'error' => 'Database error',
-                'message' => $e->getMessage()
-            ]);
-        }
-    }
-
-    public function update ($params) {
+    public function update (string $id) {
         $data = json_decode(file_get_contents('php://input'), true);
         try {
+            $params = ['id' => $id];
             $calendar = new BD($data);
             $response = $calendar->update('calendar', $params);
             if ($response) {
@@ -79,6 +76,7 @@ class CalendarControllers {
                 echo "The task has been updated successfully";
             } else {
                 header("HTTP/1.1 500 SERVER ERROR");
+                echo "we could not update the task";
             }
         } catch (PDOException $e) {
             header("HTTP/1.1 500 SERVER ERROR");
@@ -87,10 +85,6 @@ class CalendarControllers {
                 'message' => $e->getMessage()
             ]);
         }
-    }
-
-    public function delete ($parans) {
-
     }
 }
 

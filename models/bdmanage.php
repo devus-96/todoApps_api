@@ -80,6 +80,7 @@ class BD {
         $j++;
       }
       $command = "UPDATE $table SET $prevcammand  WHERE $where_condition";
+      echo $command;
       return  $command;
     }
     
@@ -128,7 +129,7 @@ class BD {
         return $response;
   }
 
-  public function delete (string $table, mixed $params): bool {
+  public function delete (string $table, mixed $params): mixed {
     $value = $this->alter_delete_req($table, $params);
     $drop = $this->pdo->prepare($value);
     $response = $drop->execute();

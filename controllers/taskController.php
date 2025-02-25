@@ -4,15 +4,12 @@ declare(strict_types = 1);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/calendarController.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/scheduleController.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
 
 class TaskController {
     public function get ($priority, $status) {
         $params = ['priority' => $priority, 'status' => $status];
-        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
-        $token = explode('Bearer', $authorizationHeader)[1];
-        $response = decodeJWT($token);
-        $array = json_decode(json_encode($response), true);
+        $array = get_user_info();
         try { 
             $params['user_id'] = $array['user']['id'];
             $tasks = new BD($params);
@@ -34,10 +31,7 @@ class TaskController {
         //recuperer les donnees de ls taches 
         $data = json_decode(file_get_contents('php://input'), true);
         //recuperer puis decoder le token
-        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
-        $token = explode('Bearer', $authorizationHeader)[1];
-        $response = decodeJWT($token);
-        $array = json_decode(json_encode($response), true);
+        $array = get_user_info();
 
         // Vérifier si les données sont valides et contiennent les clés obligatoires
         $requiredKeys = ['name', 'tags', 'priority', 'start_time', 'end_time', 'start_date', 'status'];
@@ -64,7 +58,7 @@ class TaskController {
                     'start_date' => $data['start_date'],
                     'user_id' => $array['user']['id']
                 ]);
-                $response_calendar = $calendar->search('calendar', 'id', 'start_date');
+                $response_calendar = $calendar->get('calendar', 'id');
                 // si non : cree un nouveau calendier
                 if (!$response_calendar) {
                     $calendar = new BD([
@@ -98,10 +92,7 @@ class TaskController {
         //recuperer les donnees de ls taches 
         $data = json_decode(file_get_contents('php://input'), true);
         // recuperer les infos du users
-        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
-        $token = explode('Bearer', $authorizationHeader)[1];
-        $response = decodeJWT($token);
-        $array = json_decode(json_encode($response), true);
+        $array = get_user_info();
         $params = ['id' => $id, 'user_id' => $array['user']['id']];
         try {
             $task = new BD($data);
@@ -122,16 +113,31 @@ class TaskController {
     }
 
     public function delete ($id) {
-        $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
-        $token = explode('Bearer', $authorizationHeader)[1];
-        $response = decodeJWT($token);
-        $array = json_decode(json_encode($response), true);
+        $array = get_user_info();
         try {
-            $params = ['id' => $id, 'user_id' => $array['user']['id']];
-            $params_schedule = ['task_id' => $id];
+            $params = ['id' => (int)$id, 'user_id' => (int)$array['user']['id']];
+            $params_schedule = ['task_id' => (int)$id];
+            // recuperer la colonne que on vx supprimer
+            $schedules = new BD($params_schedule);
+            $response_schedules = $schedules->search('schedules', 'calendar_id', 'task_id');
+            // recuperer la colonne que on vx supprimer
+            $params_calendar = ['calendar_id' => $response_schedules['calendar_id']];
+            $calendar = new BD($params_calendar);
+            // supprime la ligne de la table schedules
             $task = new BD($id);
-            $response_schedule = $task->delete('schedules', $params_schedule);
-            if ($response_schedule) {
+            $response_deleted_schedule = $task->delete('schedules', $params_schedule);
+            if ($response_deleted_schedule && $response_schedules) {
+                $calendars = $calendar->search('schedules', '*', 'calendar_id');
+                if (!$calendars) {
+                    $response_deleted_calendar = $calendar->delete('calendar', [
+                        'id' => $response_schedules['calendar_id'],
+                        'user_id' => $array['user']['id']
+                    ]);
+                    if (!$response_deleted_calendar) {
+                        header("HTTP/1.1 500 SERVER ERROR");
+                        echo "failed delete calendar";
+                    }
+                }
                 $response = $task->delete('tasks', $params);
                 if ($response) {
                     header("HTTP/1.1 201 Deleted");
@@ -141,6 +147,7 @@ class TaskController {
                 }
             } else {
                 header("HTTP/1.1 500 SERVER ERROR");
+                echo "err";
             }
         } catch (PDOException $e) {
             header("HTTP/1.1 500 SERVER ERROR");
