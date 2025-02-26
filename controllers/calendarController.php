@@ -2,8 +2,8 @@
 //cette ligne est pour l'empecher
 declare(strict_types = 1);
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/models/calendar.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/calendar.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
 
 

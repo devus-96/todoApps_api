@@ -2,8 +2,7 @@
 //cette ligne est pour l'empecher
 declare(strict_types = 1);
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/calendarController.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
 
 class TaskController {
@@ -84,7 +83,10 @@ class TaskController {
             }
         } catch (PDOException $e) {
             header("HTTP/1.1 500 SERVER ERROR");
-            echo $e->getMessage();
+            echo json_encode([
+                'error' => 'Database error',
+                'message' => $e->getMessage()
+            ]);
         }
     } 
 
