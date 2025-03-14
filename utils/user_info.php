@@ -1,9 +1,14 @@
 <?php 
 
 function get_user_info () {
+        //recupere les entetes
+        $headers = getallheaders();
         $authorizationHeader = $_SERVER['HTTP_AUTHORIZATION'];
         $token = explode('Bearer', $authorizationHeader)[1];
-        $token = decodeJWT($token);
+        $provider = $headers['X-Custom-Header'];
+        //decode le token
+        $token = decodeJWT($token, $provider);
+        
 
         if (is_string($token)) {
             header("HTTP/1.1 400 BAD REQUEST");

@@ -1,5 +1,5 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/models/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
 
 class Calendar extends BD {
    public function sort_by_day ($params) {

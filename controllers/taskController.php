@@ -31,6 +31,7 @@ class TaskController {
         $data = json_decode(file_get_contents('php://input'), true);
         //recuperer puis decoder le token
         $array = get_user_info();
+        print_r($array);
 
         // Vérifier si les données sont valides et contiennent les clés obligatoires
         $requiredKeys = ['name', 'tags', 'priority', 'start_time', 'end_time', 'start_date', 'status'];

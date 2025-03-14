@@ -11,7 +11,6 @@ class UserController {
 
     public function create () {
         $data = json_decode(file_get_contents('php://input'), true);
-        echo $data;
         // Vérifier si les données sont valides et contiennent les clés obligatoires
         $requiredKeys = ['firstname', 'lastname', 'email', 'password'];
         $missingKeys = array_diff($requiredKeys, array_keys($data));
@@ -121,7 +120,7 @@ class UserController {
                         echo "the password you're just entered is wrong !!!";
                     }
                 } else {
-                    header('HTTP/1.1 404 Not Found');
+                    header('HTTP/1.1 401 Unauthorized');
                     echo "i don't find this email, please verify email !!!!";
                 }
             }
