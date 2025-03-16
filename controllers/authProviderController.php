@@ -4,22 +4,25 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/jwt.php';
 
 class AUTH extends BD {
-    function authProvider ($data) {
+    public function authProvider ($data, $provider) {
         try {
             if (!empty($data)) {
                 $user = new BD($data);
                 $checkEmail = $user->search('users', '*', 'email');
                 if ($checkEmail) {
-                        header("HTTP/1.1 200 OK");
+                    $verify_provider = $user->search('users', 'provider', 'email');
+                    if ($verify_provider === 'google') {
+                        $user->update('users', ['github_id' => $data['github_id']]);
+                    } else if ($verify_provider === "github") {
+                        $user->update('users', ['google_id' => $data['google_id']]);
+                    }
+                    header("HTTP/1.1 200 OK");
                 } else {
-                    $stmg = $this->pdo->prepare("INSERT INTO users (firstname, lastname, email, provider) VALUES (:firstName, :lastName, :email, :provider)");
-                    //...executer par la fonction execute() de la valeur renvoye par prepare()
-                    $stmg->execute([
-                        ":firstName" => $data["firstname"],
-                        ":lastName" => $data["lastname"],
-                        ":email" => $data["email"],
-                        ":provider" => $data["provider"]
-                    ]);
+                    if ($provider === "github") {
+                        $user->insert('users', 'github_id');
+                    } else if ($provider === 'google') {
+                        $user->insert('users', 'google_id');
+                    }
                     header("HTTP/1.1 200 OK");
                 }
             }

@@ -23,32 +23,26 @@ if (!isset($_GET['code'])) {
     $token = $github_provider->getAccessToken('authorization_code', [
         'code' => $_GET['code']
     ]);
-
     // Optional: Now you have a token you can look up a users profile data
     try {
-
         // We got an access token, let's now get the user's details
         $user = $github_provider->getResourceOwner($token);
-
         $data = [
+            "github_id" =>  $user->getId(),
             "firstname" => $user->getNickname(),
             "lastname" => $user->getName(),
             "email" => $user->getEmail() ,
             "provider" => 'github'
         ];
-
         $auth = new AUTH('');
-        $auth->authProvider($data);
-
+        $auth->authProvider($data, 'github');
         // Use these details to create a new profile
         echo json_encode([
             "userData" => $data, 
             "token" => $token->getToken(), // Use this to interact with an API on the users behalf
             "expired" => $token->getExpires()
         ]);
-
     } catch (Exception $e) {
-
         // Failed to get user details
         exit('Oh dear...');
     }    

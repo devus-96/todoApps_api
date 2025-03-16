@@ -6,6 +6,7 @@ use Firebase\JWT\ExpiredException;
 use Firebase\JWT\SignatureInvalidException;
 use Firebase\JWT\BeforeValidException;
 
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/config.php';
 
 function generateJWT($userdata) {
@@ -35,33 +36,54 @@ function generateJWT($userdata) {
 function decodeJWT($token, $provider) {
     try { 
         if ($provider === 'google') {
-            $token = $token;
-            $publicKeys = file_get_contents('https://www.googleapis.com/oauth2/v3/certs');
-            $publicKeys = json_decode($publicKeys, true);
-    
-            foreach ($publicKeys['keys'] as $key) {
-                $decoded = JWT::decode(trim($token), new Key($key, 'RS256'));
-                print_r($decoded);
-                return $decoded;
+            $client = new Google_Client(['client_id' => GOOGLE_CLIENT_ID]);
+            $payload = $client->verifyIdToken(trim($token));
+            try{
+                if ($payload) {
+                    $userid = $payload['email'];
+                    echo $userid;
+                    return $payload;
+                    // If the request specified a Google Workspace domain
+                    //$domain = $payload['hd'];
+                  } else {
+                    // Invalid ID token
+                    echo "le jeton n'est pas valide";
+                  }
+            } catch(Exception $e) {
+               echo $e;
             }
         } else if ($provider === 'github') {
             // configuration de la requette
             $context = stream_context_create([
                 "http" => [
-                    "header" => "Authorization: Bearer" . trim($token)
+                    "header" => "Authorization: Bearer $token\r\n" .
+                    "User-Agent: TodoApps",
+                    "timeout" => 10 // Timeout de 10 secondes
                 ]
             ]);
             //on poste les donnees 
             $response = file_get_contents('https://api.github.com/user', false, $context);
-            $userInfo = json_decode($response, true);
+            if ($response === false) {
+                // Récupérer les détails de l'erreur
+                $error = error_get_last();
+                echo "Erreur lors de la requête : " . $error['message'];
+            } else {
+                // Décoder la réponse JSON
+                $userInfo = json_decode($response, true);
             
-            return $userInfo;
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    // Afficher les informations de l'utilisateur
+                    return $userInfo;
+                } else {
+                    echo "Erreur lors du décodage de la réponse JSON : " . json_last_error_msg();
+                }
+            }
         } else {
             // Décoder le token JWT
             $decoded = JWT::decode(trim($token), new Key(JWT_SECRET, 'HS512'));
             
             // Retourner les données décodées
-            return $decoded;
+            return $decoded['user'];
         }
     } catch (Exception $e) {
         try {

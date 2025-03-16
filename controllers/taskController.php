@@ -31,7 +31,6 @@ class TaskController {
         $data = json_decode(file_get_contents('php://input'), true);
         //recuperer puis decoder le token
         $array = get_user_info();
-        print_r($array);
 
         // Vérifier si les données sont valides et contiennent les clés obligatoires
         $requiredKeys = ['name', 'tags', 'priority', 'start_time', 'end_time', 'start_date', 'status'];
@@ -47,7 +46,7 @@ class TaskController {
             exit();
         }
         try {
-            $data['user_id'] = $array['user']['id'];
+            $data['user_id'] = $array['id'];
             $task = new BD($data);
             $response = $task->insert('tasks', 'id');
 
@@ -56,14 +55,14 @@ class TaskController {
                 //verifier si un calendier existe a cette date
                 $calendar = new BD([
                     'start_date' => $data['start_date'],
-                    'user_id' => $array['user']['id']
+                    'user_id' => $array['id']
                 ]);
                 $response_calendar = $calendar->get('calendar', 'id');
                 // si non : cree un nouveau calendier
                 if (!$response_calendar) {
                     $calendar = new BD([
                         'start_date' => $data['start_date'],
-                        'user_id' => $array['user']['id']
+                        'user_id' => $array['id']
                     ]);
                     $response_calendar = $calendar->insert('calendar', 'id');
                 }
@@ -96,7 +95,7 @@ class TaskController {
         $data = json_decode(file_get_contents('php://input'), true);
         // recuperer les infos du users
         $array = get_user_info();
-        $params = ['id' => $id, 'user_id' => $array['user']['id']];
+        $params = ['id' => $id, 'user_id' => $array['id']];
         try {
             $task = new BD($data);
             $res = $task->update('tasks', $params);
@@ -118,7 +117,7 @@ class TaskController {
     public function delete ($id) {
         $array = get_user_info();
         try {
-            $params = ['id' => (int)$id, 'user_id' => (int)$array['user']['id']];
+            $params = ['id' => (int)$id, 'user_id' => (int)$array['id']];
             $params_schedule = ['task_id' => (int)$id];
             // recuperer la colonne que on vx supprimer
             $schedules = new BD($params_schedule);
@@ -134,7 +133,7 @@ class TaskController {
                 if (!$calendars) {
                     $response_deleted_calendar = $calendar->delete('calendar', [
                         'id' => $response_schedules['calendar_id'],
-                        'user_id' => $array['user']['id']
+                        'user_id' => $array['id']
                     ]);
                     if (!$response_deleted_calendar) {
                         header("HTTP/1.1 500 SERVER ERROR");

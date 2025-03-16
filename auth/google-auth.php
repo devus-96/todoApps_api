@@ -5,63 +5,55 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/cors.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/authProviderController.php';
 require $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
 
-session_start();
+if (!session_id()) session_start();
 cors(); // fix cors policy
 
+$gClient = new Google\Client();
+$gClient->setClientId(GOOGLE_CLIENT_ID);
+$gClient -> setClientSecret(GOOGLE_CLIENT_SECRETE);
+$gClient -> setRedirectUri(GOOGLE_REDIRET_URL);
+// Ajouter les scopes nécessaires
+$gClient->addScope(Google\Service\Oauth2::USERINFO_PROFILE);
+$gClient->addScope(Google\Service\Oauth2::USERINFO_EMAIL);
+$gClient->addScope(Google\Service\Oauth2::OPENID);
 
-if (!empty($_GET['error'])) {
-    // Got an error, probably user denied access
-    exit('Got error: ' . htmlspecialchars($_GET['error'], ENT_QUOTES, 'UTF-8'));
-} else if (empty($_GET['code'])) {
-    // If we don't have an authorization code then get one
-    $authUrl = $google_provider->getAuthorizationUrl();
-    $state = $google_provider->getState();
 
-    if ($authUrl) {
-        header('HTTP/1.1 200 ok');
-        echo json_encode(['authUrl' => $authUrl, 'state' => $state]);
-    } else {
-        exit("send url is not possible");
+if (!isset($_GET['code'])) {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        $authUrl = $gClient->createAuthUrl();
+        echo json_encode(['authUrl' => $authUrl]);
     }
 } else {
-    // Try to get an access token (using the authorization code grant)
-    $token = $google_provider->getAccessToken('authorization_code', [
-        'code' => $_GET['code']
-    ]);
-
-    // Optional: Now you have a token you can look up a users profile data
     try {
 
-        // We got an access token, let's now get the owner details
-        $ownerDetails = $google_provider->getResourceOwner($token);
+        $token = $gClient->fetchAccessTokenWithAuthCode($_GET['code']);
+        $gClient->setAccessToken($token);
 
-        $data = [
-            "firstname" => $user->getFirstName(),
-            "lastname" => $user->getLastName() ,
-            "email" => $user->getEmail() ,
-            "provider" => 'google'
-        ];
+        $oauth2 = new Google\Service\Oauth2($gClient);
+        $userinfo = $oauth2->userinfo->get();
+
+        $gUser = array();
+
+        // Accéder aux informations utilisateur
+        $gUser["email"] = $userinfo->getEmail();
+        $gUser["firstname"] = $userinfo->getGivenName();
+        $gUser["lastname"] = $userinfo->getFamilyName();
+        $gUser['google_id'] = $userinfo->getId();
+        $gUser['provider'] = 'google';
 
         $auth = new AUTH('');
-        $auth->authProvider($data);
+        $auth->authProvider($gUser, 'google');
 
-        // Use these details to create a new profile
         echo json_encode([
-            "userData" => $data, 
-            "token" => $token->getToken(),
-            "expired" => $token->getExpires() // Unix timestamp at which the access token expires
+            "id_token" => $token['id_token'],
+            "expired" => $token['expires_in'],
+            "userData" => [
+                "firstname" => $gUser["firstname"],
+                "lastname" => $gUser["lastname"]
+            ]
         ]);
 
     } catch (Exception $e) {
-
-        // Failed to get user details
-        exit('Something went wrong: ' . $e->getMessage());
-
+        exit($e . 'Oh dear...');
     }
-
-
-    // Use this to get a new access token if the old one expires
-    echo $token->getRefreshToken();
 }
-
-?>
