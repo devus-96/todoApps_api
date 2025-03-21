@@ -30,7 +30,7 @@ class Team extends BD {
     }
 
     public function create_company_team ($data, $params) {
-        $role = new BD(["user_id" => $params['id'], "company_id" => $params['company_id']]);
+        $role = new BD(["user_id" => $params['user_id'], "company_id" => $params['company_id']]);
         $response = $role->get('usercompanies', "role");
         if ($response !== 'ownner' || $response = 'manager') {
             http_response(403, "you not have permission to make this action!");
@@ -52,7 +52,7 @@ class Team extends BD {
     }
 
     public function update_team ($data, $params) {
-        $role = new BD(["user_id" => $params['id'], "team_id" => $params['team_id']]);
+        $role = new BD(["user_id" => $params['user_id'], "team_id" => $params['team_id']]);
         $response = $role->get('roles', "role");
         if ($response === "administrator" || $response === "author") {
             $task = new BD($data);
@@ -68,7 +68,7 @@ class Team extends BD {
     }
 
     public function delete_team ($params) {
-        $role = new BD(["user_id" => $params['id'], "team_id" => $params['team_id']]);
+        $role = new BD(["user_id" => $params['user_id'], "team_id" => $params['team_id']]);
         $response = $role->get('roles', "role");
         if ($response === "author") {
             $user = new BD();

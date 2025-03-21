@@ -1,6 +1,4 @@
 <?php 
-//php essayera tant que possible de convertir une valeur de mauvais type en une type ettendu
-//cette ligne est pour l'empecher
 declare(strict_types = 1);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
@@ -16,7 +14,7 @@ class TeamController {
             if ($teams) {
                 http_response(200, json_encode($teams));
             } else {
-                http_response(500, "we can fetch teams, sorry!");
+                http_response(500, "we can't fetch teams, sorry!");
             }
         } catch(Exception $e) {
             http_response(500, "Database error:".$e->getMessage());
@@ -40,7 +38,7 @@ class TeamController {
                     "project" => $res_projects
                 ]));
             } else {
-                http_response(500, "we can fetch teams, sorry!");
+                http_response(500, "we can't fetch teams, sorry!");
             }
         }
          catch (PDOException $e) {
@@ -61,7 +59,7 @@ class TeamController {
             if ($companyId) {
                 $params = ["company_id"=>$companyId, "user_id"=>$array["id"]];
                 $team = new Team();
-                $response_team = $team->create_company_team($data, $params);
+                $team->create_company_team($data, $params);
             } else {
                 $team = new BD($data);
                 $response_team = $team->insert('teams', 'id');

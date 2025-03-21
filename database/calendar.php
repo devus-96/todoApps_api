@@ -2,11 +2,11 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
 
 class Calendar extends BD {
-   public function sort_by_day ($params) {
+   public function get_user_calendar ($params) {
     $get = $this->pdo->prepare('SELECT * FROM tasks
                 JOIN schedules ON tasks.id = schedules.task_id
                 JOIN calendar ON schedules.calendar_id = calendar.id
-                WHERE calendar.user_id = :userId AND calendar.start_date = :date'
+               WHERE calendar.user_id = :userId AND calendar.start_date BETWEEN :start_date AND :end_date'
             );
     $get->execute([
         ":date" => $params['date'],
@@ -16,11 +16,11 @@ class Calendar extends BD {
     return $response;
    }
 
-   public function sort_by_month_week ($params) {
+   public function get_team_calendar ($params) {
     $get = $this->pdo->prepare('SELECT * FROM tasks
                 JOIN schedules ON tasks.id = schedules.task_id
                 JOIN calendar ON schedules.calendar_id = calendar.id
-                WHERE calendar.user_id = :userId AND calendar.start_date BETWEEN :start_date AND :end_date'
+                WHERE calendar.team_id = :userId AND calendar.start_date BETWEEN :start_date AND :end_date'
             );
     $get->execute([
         ":start_date" => $params['start_date'],
