@@ -7,15 +7,24 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/response.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/company.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/team.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/required.php';
 
 class CompanyController {
     public function search ($id) {
         try {
+            get_user_info();
             $company = new BD(["id" => $id]);
             $response = $company->search('companies', "*", 'id');
+            $team = new Team();
+            $response_team = $team->search_team_company($id);
             if ($response) {
-                http_response(200, json_encode($response));
+                http_response(200, json_encode(
+                    [
+                        "company" => $response,
+                        "team" => $response_team
+                    ]
+                ));
             } else {
                 http_response(500, "we can fetch company, sorry!");
             }
