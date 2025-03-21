@@ -4,16 +4,16 @@ declare(strict_types = 1);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/response.php';
 
 class TaskController {
     public function get ($priority, $status) {
         $params = ['priority' => $priority, 'status' => $status];
         $array = get_user_info();
         try { 
-            $params['user_id'] = $array['user']['id'];
+            $params['user_id'] = $array['id'];
             $tasks = new BD($params);
             $response = $tasks->get("tasks", "*");
-            echo json_encode($response);
             if ($response) {
                 header('HTTP/1.1 200 OK');
                 echo json_encode($response);
@@ -22,11 +22,11 @@ class TaskController {
                 echo "task not found at this date !!!";
             }
         } catch (PDOException $e) {
-            $e->getMessage();
+            http_response(500, "Database error:".$e->getMessage());
         }
     }
 
-    public function create ($project = null) {
+    public function create ($project_id = null) {
         //recuperer les donnees de ls taches 
         $data = json_decode(file_get_contents('php://input'), true);
         //recuperer puis decoder le token
@@ -38,11 +38,7 @@ class TaskController {
 
         if (!empty($missingKeys)) {
             // Renvoyer une erreur 400 si des champs obligatoires sont manquants
-            header("HTTP/1.1 400 Bad Request");
-            echo json_encode([
-                'error' => 'Missing required fields',
-                'missing_fields' => array_values($missingKeys)
-            ]);
+            http_response(400, json_encode(['error' => 'Missing required fields', 'missing_fields' => array_values($missingKeys)]));
             exit();
         }
         try {
@@ -74,43 +70,33 @@ class TaskController {
                     ]);
                     $schedule->insert('schedules', 'task_id');
                 }
-                
                 // server response
-                header("HTTP/1.1 201 Created");
-                echo "The task has been created successfully";
+                http_response(201, "The task has been created successfully");
             } else {
                 trigger_error("error", E_USER_ERROR);
             }
         } catch (PDOException $e) {
-            header("HTTP/1.1 500 SERVER ERROR");
-            echo json_encode([
-                'error' => 'Database error',
-                'message' => $e->getMessage()
-            ]);
+            http_response(500, "Database error:".$e->getMessage());
         }
     } 
 
-    public function update ($id, $project_id=null) {
-        //recuperer les donnees de ls taches 
-        $data = json_decode(file_get_contents('php://input'), true);
-        // recuperer les infos du users
-        $array = get_user_info();
-        $params = ['id' => $id, 'user_id' => $array['id']];
+    public function update ($id) {
         try {
+            //recuperer les donnees de ls taches 
+            $data = json_decode(file_get_contents('php://input'), true);
+            // recuperer les infos du users
+            $array = get_user_info();
+            $params = ['id' => $id, 'user_id' => $array['id']];
+            //database
             $task = new BD($data);
             $res = $task->update('tasks', $params);
             if ($res) {
-                header("HTTP/1.1 201 Updated");
-                echo "The task has been updated successfully";
+                http_response(201, "The task has been updated successfully", "Updated");
             } else {
-                header("HTTP/1.1 500 SERVER ERROR");
+                http_response(500, "failed update calendar");
             }
         } catch (PDOException $e) {
-            header("HTTP/1.1 500 SERVER ERROR");
-            echo json_encode([
-                'error' => 'Database error',
-                'message' => $e->getMessage()
-            ]);
+            http_response(500, "Database error:".$e->getMessage());
         }
     }
 
@@ -136,24 +122,20 @@ class TaskController {
                         'user_id' => $array['id']
                     ]);
                     if (!$response_deleted_calendar) {
-                        header("HTTP/1.1 500 SERVER ERROR");
-                        echo "failed delete calendar";
+                        http_response(500, "failed delete calendar");
                     }
                 }
                 $response = $task->delete('tasks', $params);
                 if ($response) {
-                    header("HTTP/1.1 201 Deleted");
-                    echo "The task has been deleted successfully";
+                    http_response(201, "The task has been deleted successfully", "Deleted");
                 } else {
-                    header("HTTP/1.1 500 SERVER ERROR");
+                    http_response(500, "failed delete calendar");
                 }
             } else {
-                header("HTTP/1.1 500 SERVER ERROR");
-                echo "err";
+                http_response(500, "failed delete task");
             }
         } catch (PDOException $e) {
-            header("HTTP/1.1 500 SERVER ERROR");
-            echo $e->getMessage();
+            http_response(500, "Database error:".$e->getMessage());
         }
     }
 }

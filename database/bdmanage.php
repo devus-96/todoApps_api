@@ -11,7 +11,7 @@ class BD {
    protected $pdo;
 
    
-   public function __construct($data) {
+   public function __construct($data=null) {
         $this->data = $data;
         try {
           $this->pdo = new PDO("pgsql:host=$this->host;dbname=$this->dbname",$this->user, $this->password);
@@ -23,7 +23,7 @@ class BD {
           $this->pdo->setAttribute(PDO::ATTR_CASE, PDO::CASE_NATURAL);
 
        } catch (PDOException $e) {
-         die("Error: " . $e->getMessage());
+         exit("Error: " . $e->getMessage());
        }
     }
 

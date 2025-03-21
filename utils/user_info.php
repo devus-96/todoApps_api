@@ -1,5 +1,6 @@
 <?php 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/response.php';
 
 function get_user_info () {
         //recupere les entetes
@@ -11,8 +12,7 @@ function get_user_info () {
         $user_info = decodeJWT($token, $provider);
 
         if (is_string($user_info)) {
-            header("HTTP/1.1 403 BAD REQUEST");
-            //echo json_encode($token);
+            http_response(403, $user_info);
             exit();
         } else {
             if ($provider === 'github') {

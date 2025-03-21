@@ -27,7 +27,7 @@ class AUTH extends BD {
                 }
             }
         } catch (PDOException $e) {
-            header("HTTP/1.1 400 Bad request1");
+            header("HTTP/1.1 400 Bad request");
             echo json_encode($e);
         }
     }

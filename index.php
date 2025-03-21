@@ -26,23 +26,28 @@ $routes = array_merge(
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = $_SERVER['REQUEST_URI'];
 
-// Trouver la route correspondante
-foreach ($routes as $route) {
-    if ($route['method'] === $method && preg_match($route['pattern'], $uri, $matches)) {
-        $params = [];
-        // decouper le resultat
-        $pathnameAndParams = explode('?', $matches[0]);
-        if (count($pathnameAndParams) === 2) {
-            // recuperer les parametres
-            // Découper les paramètres en un tableau associatif 
-            parse_str($pathnameAndParams[1], $params);
-        }
-        // Instancier le contrôleur et appeler la méthode
-        $controller = new $route['controller']();
-        call_user_func_array([$controller, $route['action']], $params);
+try {
+    // Trouver la route correspondante
+    foreach ($routes as $route) {
+        if ($route['method'] === $method && preg_match($route['pattern'], $uri, $matches)) {
+            $params = [];
+            // decouper le resultat
+            $pathnameAndParams = explode('?', $matches[0]);
+            if (count($pathnameAndParams) === 2) {
+                // recuperer les parametres
+                // Découper les paramètres en un tableau associatif 
+                parse_str($pathnameAndParams[1], $params);
+            }
+            // Instancier le contrôleur et appeler la méthode
+            $controller = new $route['controller']();
+            call_user_func_array([$controller, $route['action']], $params);
 
-        exit();
+            exit();
+        }
     }
+} catch (Exception $e) {
+    http_response(500, "Database error:".$e->getMessage());
+    exit();
 }
 
 // Gérer les erreurs 404

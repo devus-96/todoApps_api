@@ -7,13 +7,33 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
 
 class TeamController {
-    public function search () {
+    public function search ($id = null) {
         //recuperer puis decoder le token
         $array = get_user_info();
-
+            // recuperer les details du projet
+            $team = new BD(["id" => $id, "user_id" => $array['id']]);
+            $res_projects = $team->get('teams', "*");
+            // recuperer les taches du projet en cour
+            $project = new BD(["team_id" => $id]);
+            $res_taks = $project->search('tasks', "*", "project_id");
+            //envoyer les donnees au client
+            if ($res_taks && $res_projects) {
+                header('HTTP/1.1 200 OK');
+                echo json_encode([
+                    "project" => $res_projects,
+                    "tasks" => $res_taks
+                ]);
+            } else {
+                header("HTTP/1.1 500 SERVER ERROR");
+                echo "";
+            }
         try {
-            $teams = new BD(['id' => $array['user']['id']]);
-            $response = $teams->get('teams', '*');
+            if ($id) {
+
+            } else {
+                $teams = new BD(['id' => $array['user']['id']]);
+                $response = $teams->get('teams', '*');
+            }
             if ($response) {
                 header('HTTP/1.1 200 ok');
                 echo json_encode($response);
@@ -52,7 +72,7 @@ class TeamController {
         }
 
         try {
-            $data['creator'] = $array['user']['email'];
+            $data['creator'] = $array['email'];
             $team = new BD($data);
             $response_team = $team->insert('teams', 'id');
 

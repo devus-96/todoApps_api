@@ -5,6 +5,7 @@ declare(strict_types = 1);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/calendar.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/response.php';
 
 
 class CalendarControllers {
@@ -19,18 +20,12 @@ class CalendarControllers {
             $tasks = $calendar->sort_by_day($params);
 
             if ($tasks) {
-                header('HTTP/1.1 200 OK');
-                echo json_encode($tasks);
+                http_response(200, json_encode($tasks));
             } else {
-                header("HTTP/1.1 400 BAD REQUEST");
-                echo "no tasks exist at this date";
+                http_response(400, "no tasks exist at this date");
             }
         } catch (PDOException $e) {
-            header("HTTP/1.1 500 SERVER ERROR");
-            echo json_encode([
-                'error' => 'Database error',
-                'message' => $e->getMessage()
-            ]);
+            http_response(500, "Database error:".$e->getMessage());
         }
     }
 
@@ -49,19 +44,13 @@ class CalendarControllers {
             $tasks = $calendar->sort_by_month_week($params);
 
             if ($tasks) {
-                header('HTTP/1.1 200 OK');
-                echo json_encode($tasks);
+                http_response(200, json_encode($tasks));
             } else {
-                header("HTTP/1.1 500 SERVER ERROR");
-                echo "something went wrong";
+                http_response(500, "we could not get the tasks");
             }
 
         } catch (PDOException $e) {
-            header("HTTP/1.1 500 SERVER ERROR");
-            echo json_encode([
-                'error' => 'Database error',
-                'message' => $e->getMessage()
-            ]);
+            http_response(500, "Database error:".$e->getMessage());
         }
     }
 
@@ -72,18 +61,12 @@ class CalendarControllers {
             $calendar = new BD($data);
             $response = $calendar->update('calendar', $params);
             if ($response) {
-                header("HTTP/1.1 201 Updated");
-                echo "The task has been updated successfully";
+                http_response(201, "The task has been updated successfully", "Updated");
             } else {
-                header("HTTP/1.1 500 SERVER ERROR");
-                echo "we could not update the task";
+                http_response(500, "we could not update the task");
             }
         } catch (PDOException $e) {
-            header("HTTP/1.1 500 SERVER ERROR");
-            echo json_encode([
-                'error' => 'Database error',
-                'message' => $e->getMessage()
-            ]);
+            http_response(500, "Database error:".$e->getMessage());
         }
     }
 }
