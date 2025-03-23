@@ -1,4 +1,8 @@
 <?php 
+declare(strict_types = 1);
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/response.php';
 
 class Team extends BD {
     public function search_team_company ($companyId) {

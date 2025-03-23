@@ -4,6 +4,7 @@ declare(strict_types = 1);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/team.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/required.php';
 
 class TeamController {
     public function get () {

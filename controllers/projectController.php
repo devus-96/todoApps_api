@@ -4,8 +4,10 @@
 declare(strict_types = 1);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/project.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/user_info.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/response.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/required.php';
 
 class ProjectController {
     public function search ($id, $teamId) {
@@ -66,21 +68,14 @@ class ProjectController {
             $array = get_user_info();
             // Vérifier si les données sont valides et contiennent les clés obligatoires
             required_attribute($data, ['name', 'tags', 'priority', 'start_time', 'end_time', 'start_date', 'status']);
+            $data['creator'] = $array['email'];
             if ($teamId) {
                 $data['team_id'] = $teamId;
-                $data['creator'] = $array['email'];
-
-                $project = new BD($data);
-                $response = $project->insert('tasks', 'id');
-                if ($response) {
-                    http_response(200, $response);
-                } else {
-                    http_response(500, "something went wrong !!");
-                }
+                $params = ["team_id"=>$teamId, "user_id"=>$array['id']];
+                $project = new Project();
+                $project->create_team_project($data, $params);
             } else {
                 $data['user_id'] = $array['id'];
-                $data['creator'] = $array['email'];
-
                 $project = new BD($data);
                 $response = $project->insert('tasks', 'id');
                 if ($response) {
@@ -100,19 +95,12 @@ class ProjectController {
             $data = json_decode(file_get_contents('php://input'), true);
             //recuperer puis decoder le token
             $array = get_user_info();
-            $role = new BD(["user_id" => $array['id']]);
-            $response = $role->get('projects', "role");
-            if ($teamId && ($response === 'administrator' || $response === 'ownner')) {
-                $params = ['id' => $id, 'team_id' => $teamId];
+            if ($teamId) {
+                $params = ['id' => $id, 'team_id' => $teamId, "user_id"=>$array['id']];
                 //update project info
-                $task = new BD($data);
-                $res = $task->update('project', $params);
-                if ($res) {
-                    http_response(201, "The project has been updated successfully", "Updated");
-                } else {
-                    http_response(500, "failed update project");
-                }
-            } else if (!$response) {
+                $project = new Project();
+                $project->create_team_project($data, $params);
+            } else {
                 $params = ['id' => $id, 'user_id' => $array['id']];
                 //update project info
                 $task = new BD($data);
@@ -122,8 +110,6 @@ class ProjectController {
                 } else {
                     http_response(500, "failed update project");
                 }
-            } else {
-                http_response(403, "you not permission to update the project");
             }
         } catch(Exception $e) {
             http_response(500, "Database error:".$e->getMessage());
@@ -131,9 +117,24 @@ class ProjectController {
 
     }
 
-    public function delete () {
+    public function delete ($id, $teamId=null) {
         try {
-
+            //recuperer puis decoder le token
+            $array = get_user_info();
+            if ($teamId) {
+                $params = ['id' => $id, 'team_id' => $teamId, "user_id"=>$array['id']];
+                //update project info
+                $project = new Project();
+                $project->delete_team_project($params);
+            } else {
+                $user = new BD();
+                $response = $user->delete('projects', ["id" => $id]);
+                if ($response) {
+                    http_response(200, "team has been deleted succesfully");
+                } else {
+                    http_response(500, "sorry we can't delete team, sorry!");
+                }
+            }
         } catch (Exception $e) {
             http_response(500, "Database error:".$e->getMessage());
         }

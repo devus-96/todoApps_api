@@ -2,6 +2,7 @@
 declare(strict_types = 1);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/database/bdmanage.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/response.php';
 
 class Task extends BD {
     public function create_task ($data, $params) {
@@ -38,9 +39,9 @@ class Task extends BD {
             $task = new BD($data);
             $res = $task->update('task', ['id' => $params['task_id']]);
             if ($res) {
-                http_response(200, "team has been updated succesfully");
+                http_response(200, "task has been updated succesfully");
             } else {
-                http_response(500, "sorry we can't update the team, sorry!");
+                http_response(500, "sorry we can't update the task, sorry!");
             }
         } else {
             http_response(403, "you not have permission to make this action!");
