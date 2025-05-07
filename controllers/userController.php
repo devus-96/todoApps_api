@@ -50,9 +50,9 @@ class UserController {
         } catch (PDOException $e) {
             // Gérer les erreurs de base de données
             if ($e->getCode() === "23505") {
-                http_response(400, json_encode(['error' => 'Email already exists',]));
+                http_response(400, json_encode(['message' => 'Email already exists',]));
             } else {
-                http_response(500, "Database error:".$e->getMessage());
+                http_response(500, json_encode(["message" => "Database error:".$e->getMessage()]));
             }
         }
     }
@@ -73,7 +73,9 @@ class UserController {
             $user = new BD($data);
             $response = $user->search('users', 'provider', 'email');
             if ($response['provider'] !== null) {
-                http_response(403, "Please log in with Google, as you did when you first logged in.");
+                http_response(403, [
+                    "message" => "Please log in with Google, as you did when you first logged in."
+                ]);
             } else  {
                 $response = $user->search('users', '*', 'email');
                 if ($response) {
@@ -96,14 +98,20 @@ class UserController {
                             'token' => $token
                         ]));
                     } else {
-                        http_response(403, "the password you're just entered is wrong !!!");
+                        http_response(403, json_encode([
+                            "message" => "the password you're just entered is wrong !!!"
+                        ]));
                     }
                 } else {
-                    http_response(403, "i don't find this email, please verify email !!!!");
+                    http_response(403, json_encode([
+                        "message" => "i don't find this email, please verify email !!!"
+                    ]));
                 }
             }
         } catch (PDOException $e) {
-            http_response(500, "Database error:".$e->getMessage());
+            http_response(500, [
+                "message" => "Database error:".$e->getMessage()
+            ]);
         }
     }
 
@@ -117,14 +125,15 @@ class UserController {
             $response = $user->update('users', $params);
             if ($response) {
                 // Renvoyer une réponse JSON avec les données de l'utilisateur et le token
-                http_response(201, 'user datas has been updated', 'Updated');
+                http_response(201, json_encode(["message" => 'user datas has been updated']), 'Updated');
             } else {
-                http_response(500, 'failed to update user datas');
+                http_response(500, json_encode(["message" => 'failed to update user datas']));
             }
         } catch (PDOException $e) {
-            http_response(500, "Database error:".$e->getMessage());
+            http_response(500, [
+                "message" => "Database error:".$e->getMessage()
+            ]);
         }
-        
     }
 
     public function delete () {
@@ -134,12 +143,14 @@ class UserController {
             $user = new BD();
             $response = $user->delete('users', $params);
             if ($response) {
-                http_response(201, 'user datas has been deleted', 'Deleted');
+                http_response(201, json_encode(["message" => 'user datas has been deleted']), 'Deleted');
             } else {
-                http_response(500, 'failed to delete user datas');
+                http_response(500, json_encode(["message" => 'failed to delete user datas']));
             }
         } catch (PDOException $e) {
-            http_response(500, "Database error:".$e->getMessage());
+            http_response(500, [
+                "message" => "Database error:".$e->getMessage()
+            ]);
         }
     }
 

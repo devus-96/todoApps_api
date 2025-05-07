@@ -4,6 +4,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/userController.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/taskController.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/calendarController.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/teamController.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/controllers/projectController.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
 cors();
@@ -19,7 +20,8 @@ $routes = array_merge(
         $routes, 
         require_once 'routes/task.php',
         require_once 'routes/calendar.php',
-        require_once 'routes/team.php'
+        require_once 'routes/team.php',
+        require_once 'routes/project.php'
     );
 
 // Récupérer la méthode et l'URI de la requête

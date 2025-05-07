@@ -12,9 +12,10 @@ function get_user_info () {
         $user_info = decodeJWT($token, $provider);
 
         if (is_string($user_info)) {
-            http_response(403, $user_info);
+            http_response(403, json_encode(["message" => $user_info]));
             exit();
         } else {
+            $array = json_decode(json_encode($token), true);
             if ($provider === 'github') {
                 $user = new BD(["github_id" => $user_info['id']]);
                 $response = $user->search('users', 'id', 'github_id');
@@ -24,8 +25,8 @@ function get_user_info () {
                 $response = $user->search('users', 'id', 'google_id');
                 return ["id" => $response];
             }
-            $array = json_decode(json_encode($token), true);
-            return $array;
+            $array = json_decode(json_encode($user_info), true);
+            return $array['user'];
         }
 }
 

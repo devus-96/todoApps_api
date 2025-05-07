@@ -22,9 +22,9 @@ class Team extends BD {
 
     public function search_user_team ($userId) {
         $get = $this->pdo->prepare("SELECT * FROM teams 
-            JOIN role ON teams.id = role.team_id
-            JOIN users ON role.user_id = users.id
-            WHERE role.user_id = :userId
+            JOIN roles ON teams.id = roles.team_id
+            JOIN users ON roles.user_id = users.id
+            WHERE roles.user_id = :userId
         ");
         $get->execute([
             ":userId" => $userId,

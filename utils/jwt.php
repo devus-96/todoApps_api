@@ -81,38 +81,32 @@ function decodeJWT($token, $provider) {
         } else {
             // Décoder le token JWT
             $decoded = JWT::decode(trim($token), new Key(JWT_SECRET, 'HS512'));
-            
+            $token = json_decode(json_encode($decoded), true);;
             // Retourner les données décodées
-            return $decoded['user'];
+            return $decoded;
         }
     } catch (Exception $e) {
         try {
-            $decoded = JWT::decode($token, new Key('GITHUB_CLIENT_SECRETE', 'RS256'));
-
+            // Décoder le token JWT
+            $decoded = JWT::decode(trim($token), new Key(JWT_SECRET, 'HS512'));
+    
+            // Retourner les données décodées
             return $decoded;
-            
+        } catch (ExpiredException $e) {
+            echo "hello";
+            // Token expiré
+            return "Erreur : The token has expired.";
+        } catch (SignatureInvalidException $e) {
+            // Signature invalide
+            return "Erreur : Invalid token signature.";
+        } catch (BeforeValidException $e) {
+            // Token pas encore valide
+            return "Erreur : The token is not yet valid.";
         } catch (Exception $e) {
-            try {
-                // Décoder le token JWT
-                $decoded = JWT::decode(trim($token), new Key(JWT_SECRET, 'HS512'));
-        
-                // Retourner les données décodées
-                return $decoded;
-            } catch (ExpiredException $e) {
-                // Token expiré
-                return "Erreur : The token has expired.";
-            } catch (SignatureInvalidException $e) {
-                // Signature invalide
-                return "Erreur : Invalid token signature.";
-            } catch (BeforeValidException $e) {
-                // Token pas encore valide
-                return "Erreur : The token is not yet valid.";
-            } catch (Exception $e) {
-                // Autres erreurs
-                return "Erreur : Invalid token." ;
-            }
-
+            // Autres erreurs
+            return "Erreur : Invalid token." ;
         }
+
     }
 }
 

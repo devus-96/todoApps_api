@@ -8,60 +8,83 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/response.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/utils/required.php';
 
 class TaskController {
-    //?sort=priotity-high&status-cancel&team_id-454654
-    public function get ($sort) {
+    public function get_role ($userId, $teamId) {
+        $role = new BD(["user_id" => $userId, "team_id" => $teamId]);
+        $response = $role->get('roles', "role");
+        $role_response = json_decode(json_encode($response), true);
+        return $role_response;
+    }
+    public function get ($teamId=null) {
         try { 
-            $sorts = explode('&', $sort);
-            $params = [];
-            foreach($sorts as $params) {
-                $attribute = explode('-', $sort);
-                $params[$attribute[0]] = $attribute[1];
-            }
-            get_user_info();
-            $tasks = new BD($params);
-            $response = $tasks->get("tasks", "*");
-            if ($response) {
-                http_response(200, json_encode($response));
-            } else {
-                http_response(400, "no tasks found");
+            //recuperer puis decoder le token
+            $array = get_user_info();
+            if ($teamId) {
+                $role = $this->get_role($array['id'], $teamId);
+                if ($role!=='author'||$role!=='administrator'||$role!=="menber") {
+                    http_response(403,json_encode([
+                        "message" => "you not have permission to make this action!", 
+                    ]));
+                } else {
+                    $tasks = new BD(["team_id" => $teamId]);
+                    $response = $tasks->get("tasks", "*");
+                    if ($response) {
+                        http_response(200, json_encode($response));
+                    } else {
+                        http_response(500, "something went wrong");
+                    }
+                }
+            } else {    
+                $tasks = new BD(["user_id" => $array['id']]);
+                $response = $tasks->get("tasks", "*");
+                if ($response) {
+                    http_response(200, json_encode($response));
+                } else {
+                    http_response(500, "something went wrong");
+                }
             }
         } catch (PDOException $e) {
-            http_response(500, "Database error:".$e->getMessage());
+            http_response(500, json_encode([
+                "message" => "something went wrong",
+                "Database error" => $e->getMessage()
+            ]));
         }
     }
 
-    public function create ($projectId=null, $teamId=null) {
+    public function create ($teamId=null, $projectId=null) {
         //recuperer les donnees de ls taches 
         $data = json_decode(file_get_contents('php://input'), true);
         //recuperer puis decoder le token
         $array = get_user_info();
         // Vérifier si les données sont valides et contiennent les clés obligatoires
-        required_attribute($data,['name', 'tags', 'priority', 'start_time', 'end_time', 'start_date', 'status']);
+        required_attribute($data,['name', 'priority', 'start_date', 'state']);
         try {
-            $params['start_date'] = $data['start_date'];
             if ($teamId) {
                 //get permission
-                $role = new BD(["user_id" => $array['id'], "team_id" => $teamId]);
-                $response = $role->get('roles', "role");
-                // verifier si le user a les bonnes permissions
-                if ($response === "administrator" || $response === "author") {
-                    $params['team_id'] = $teamId;
+                $role = $this->get_role($array['id'], $teamId);
+                if ($role[0]["role"] === "administrator" || $role[0]["role"] === "author") {
+                    $data['team_id'] = $teamId;
                     if ($projectId) {
-                        $params['project_id'] = $projectId;
+                        $data['project_id'] = $projectId;
                     }
                 } else {
-                    http_response(403, "you not have permission to make this action!");
+                    http_response(403,json_encode([
+                        "message" => "you not have permission to make this action!", 
+                    ]));
+                    exit();
                 }
             } else {
-                $params['user_id'] = $array['id'];
+                $data['user_id'] = $array['id'];
                 if ($projectId) {
-                    $params['project_id'] = $projectId;
+                    $data['project_id'] = $projectId;
                 }
             }
             $task = new Task();
-            $task->create_task($data, $params);
+            $task->create_task($data);
         } catch (PDOException $e) {
-            http_response(500, "Database error:".$e->getMessage());
+            http_response(500, json_encode([
+                "message" => "something went wrong",
+                "Database error" => $e->getMessage()
+            ]));
         }
     } 
 
@@ -72,12 +95,12 @@ class TaskController {
             // recuperer les infos du users
             $array = get_user_info();
             if ($teamId) {
-                $params = ["user_id"=>$array['id'], "team_id"=>$id, "task_id"=>$id];
+                $params = ["user_id"=>$array['id'], "team_id"=>$teamId, "task_id"=>$id];
                 //update company
                 $task = new Task();
                 $task->update_task($data, $params);
             } else {
-                $params = ['id' => $id];
+                $params = ['id' => $id, 'user_id' => $array['id']];
                 $task = new BD($data);
                 $res = $task->update('tasks', $params);
                 if ($res) {
@@ -87,7 +110,10 @@ class TaskController {
                 }
             }
         } catch (PDOException $e) {
-            http_response(500, "Database error:".$e->getMessage());
+            http_response(500, json_encode([
+                "message" => "something went wrong",
+                "Database error" => $e->getMessage()
+            ]));
         }
     }
 
@@ -102,13 +128,18 @@ class TaskController {
                     $task = new Task();
                     $task->delete_task_cascade($id);
                 } else {
-                    http_response(403, "you not have permission to make this action!");
+                    http_response(403,json_encode([
+                        "message" => "you not have permission to make this action!", 
+                    ]));
                 }
             } 
             $task = new Task();
             $task->delete_task_cascade($id);
         } catch (PDOException $e) {
-            http_response(500, "Database error:".$e->getMessage());
+            http_response(500, json_encode([
+                "message" => "something went wrong",
+                "Database error" => $e->getMessage()
+            ]));
         }
     }
 }

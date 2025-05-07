@@ -94,3 +94,27 @@ CREATE TABLE notes (
     contenu TEXT,
     foreign key (user_id) references users(id) on delete cascade
 );
+
+DROP TABLE schedules;
+DROP TABLE calendar;
+ALTER TABLE tasks ADD COLUMN user_id integer;
+ALTER TABLE tasks ADD CONSTRAINT user_id_fey  foreign key (user_id) references users(id) on delete cascade;
+ALTER TABLE tasks ADD COLUMN team_id integer;
+ALTER TABLE tasks ADD CONSTRAINT team_id_fey  foreign key (team_id) references teams(id) on delete cascade;
+ALTER TABLE projects ADD COLUMN user_id integer;
+ALTER TABLE projects ADD CONSTRAINT user_id_fey  foreign key (user_id) references users(id) on delete cascade;
+
+ALTER TABLE projects DROP COLUMN state;
+ALTER TABLE projects ADD COLUMN state VARCHAR(30) CHECK (state IN ('not started',
+    'paused',
+    'in progress',
+    'done',
+    'canceled'))
+ALTER TABLE tasks DROP COLUMN priority;
+ALTER TABLE tasks ADD COLUMN priority VARCHAR(30) CHECK (priority IN ('low',
+    'high',
+    'medium'))
+ALTER TABLE tasks DROP COLUMN start_time;
+ALTER TABLE tasks DROP COLUMN end_time;
+ALTER TABLE tasks ADD COLUMN start_time VARCHAR(10);
+ALTER TABLE tasks ADD COLUMN end_time VARCHAR(10)

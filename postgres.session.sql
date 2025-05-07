@@ -1,1 +1,2 @@
-ALTER TABLE schedules ADD CONSTRAINT schedules_task_fkey FOREIGN KEY (task_id) REFERENCES tasks(id);
+DELETE FROM tasks WHERE id = '131';
+

@@ -15,7 +15,7 @@ return [
         ],
         [
             'method' => 'GET',
-            'pattern' => '#^(https?://[^/]+)?(/[task/search]+)(?:\?(.*))?$#',
+            'pattern' => '#^(https?://[^/]+)?(/[task/get]+)(?:\?(.*))?$#',
             'controller' => 'TaskController',
             'action' => 'get'
         ],

@@ -20,6 +20,12 @@ return [
             'action' => 'search'
         ],
         [
+            'method' => 'GET',
+            'pattern' => '#^(https?://[^/]+)?(/[team/get]+)(?:\?(.*))?$#',
+            'controller' => 'TeamController',
+            'action' => 'get'
+        ],
+        [
             'method' => 'DELETE',
             'pattern' => '#^(https?://[^/]+)?(/[team/delete]+)(?:\?(.*))?$#',
             'controller' => 'TeamController',

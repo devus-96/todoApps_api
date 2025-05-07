@@ -55,7 +55,7 @@ class TeamController {
             $array = get_user_info();
             // Vérifier si les données sont valides et contiennent les clés obligatoires
             required_attribute($data, ['name']);
-            $data['creator'] = $array['email'];
+            $data['author'] = $array['email'];
             //cree la team soit pour la company soit pour le user
             if ($companyId) {
                 $params = ["company_id"=>$companyId, "user_id"=>$array["id"]];
@@ -64,8 +64,14 @@ class TeamController {
             } else {
                 $team = new BD($data);
                 $response_team = $team->insert('teams', 'id');
-                if ($response_team) {
-                    http_response(200, $response_team);
+                $role = new BD([
+                    "user_id" => $array["id"], 
+                    "team_id" => $response_team["id"],
+                    "role" => 'author'
+                ]);
+                $role_res = $role->insert('roles', "role");
+                if ($response_team && $role_res) {
+                    http_response(200, json_encode($response_team));
                 } else {
                     http_response(500, "sorry we can't create a team, sorry!");
                 }
